@@ -1,29 +1,43 @@
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import { TaskList } from '../components/TaskList';
-import { AddBar } from '../components/AddBar';
+import { AddTaskFab } from '../components/AddTaskFab';
 
 export function Today() {
-  const { tasks, loading, addTask, completeTask, dropTask } = useTasks();
+  const { tasks, loading, completeTask, dropTask } = useTasks();
   const { signOut } = useAuth();
 
   if (loading) return null;
 
+  const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
   return (
-    <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px' }}>
-        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)' }}>
-          reflow
-        </span>
-        <button
-          onClick={signOut}
-          style={{ background: 'none', border: 'none', color: 'var(--dusk)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
-        >
-          sign out
-        </button>
+    <div className="today-shell">
+      <aside className="today-rail">
+        <span className="wordmark">reflow</span>
+        <div className="day-meta">
+          <span className="date">{today.toLowerCase()}</span>
+          <span className="count">{tasks.length} today</span>
+        </div>
+        <div className="rail-spacer" />
+        <button className="rail-action">start my day</button>
+        <button className="rail-signout" onClick={signOut}>sign out</button>
+      </aside>
+
+      <header className="today-header-mobile">
+        <span className="wordmark">reflow</span>
+        <div className="header-right">
+          <span className="count-chip">{tasks.length} today</span>
+        </div>
       </header>
-      <TaskList tasks={tasks} onComplete={completeTask} onDrop={dropTask} />
-      <AddBar onAdd={addTask} />
+
+      <main className="today-main">
+        <h1 className="list-heading">today</h1>
+        <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
+        <TaskList tasks={tasks} onComplete={completeTask} onDrop={dropTask} />
+      </main>
+
+      <AddTaskFab />
     </div>
   );
 }
