@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, type Task } from '../lib/tasks';
+import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, markTriaged, type Task } from '../lib/tasks';
 import { rankBetween, renumber } from '../lib/ranking';
 
 export function useTasks() {
@@ -60,5 +60,11 @@ export function useTasks() {
     await updateTaskRanks(tasks.map((t, i) => ({ id: t.id, rank: ranks[i] })));
   }
 
-  return { tasks, loading, addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, reload };
+  async function keepLeftover(id: string) {
+    const today = new Date().toISOString().slice(0, 10);
+    await markTriaged(id);
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, last_triaged_on: today } : t)));
+  }
+
+  return { tasks, loading, addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload };
 }
