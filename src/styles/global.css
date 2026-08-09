@@ -134,3 +134,79 @@ button {
 
 .empty-state { color: var(--dusk); font-family: var(--font-body); padding: 18px 0; }
 .task-list { display: flex; flex-direction: column; }
+
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--violet);
+  color: var(--paper);
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 26px -10px rgba(23, 19, 53, 0.5);
+  cursor: pointer;
+}
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 19, 53, 0.28);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 20;
+}
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 24px 48px -16px rgba(23, 19, 53, 0.35);
+}
+.modal-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dusk);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.modal-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--haze);
+  background: var(--mist);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.modal-cancel {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--dusk);
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.modal-submit {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--paper);
+  background: var(--violet);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
