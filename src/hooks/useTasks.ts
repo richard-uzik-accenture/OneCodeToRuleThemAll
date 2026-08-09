@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, type Task } from '../lib/tasks';
+import { listActiveTasks, createTask, updateTaskStatus, type Task } from '../lib/tasks';
 import { rankBetween } from '../lib/ranking';
 
 export function useTasks() {
@@ -28,5 +28,15 @@ export function useTasks() {
     setTasks((prev) => [...prev, created]);
   }
 
-  return { tasks, loading, addTask, reload };
+  async function completeTask(id: string) {
+    await updateTaskStatus(id, 'done');
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  async function dropTask(id: string) {
+    await updateTaskStatus(id, 'dropped');
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  return { tasks, loading, addTask, completeTask, dropTask, reload };
 }
