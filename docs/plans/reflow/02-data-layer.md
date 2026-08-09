@@ -15,7 +15,7 @@
 
 ## Task 1: Create the `tasks` table
 
-- [ ] **Step 1: Write the migration file** — `supabase/migrations/0001_tasks.sql`
+- [x] **Step 1: Write the migration file** — `supabase/migrations/0001_tasks.sql`
 
 ```sql
 create table public.tasks (
@@ -61,7 +61,7 @@ git commit -m "feat: add tasks table with RLS"
 **Interfaces:**
 - Produces: `rankBetween(before: number | null, after: number | null): number` and `renumber(count: number): number[]`, consumed by `src/lib/tasks.ts` (this phase), Phase 5 (drag reorder), and Phase 6 (compare duel).
 
-- [ ] **Step 1: Write the failing tests** — `src/lib/ranking.test.ts`
+- [x] **Step 1: Write the failing tests** — `src/lib/ranking.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -102,7 +102,7 @@ describe('renumber', () => {
 });
 ```
 
-- [ ] **Step 2: Configure Vitest** — `vitest.config.ts`
+- [x] **Step 2: Configure Vitest** — `vitest.config.ts`
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -116,12 +116,12 @@ export default defineConfig({
 
 Add to `package.json` scripts: `"test": "vitest run"`.
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module './ranking'` (file doesn't exist yet).
 
-- [ ] **Step 4: Write the implementation** — `src/lib/ranking.ts`
+- [x] **Step 4: Write the implementation** — `src/lib/ranking.ts`
 
 ```ts
 /**
@@ -141,12 +141,12 @@ export function renumber(count: number): number[] {
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/ranking.ts src/lib/ranking.test.ts vitest.config.ts package.json
@@ -159,7 +159,7 @@ git commit -m "feat: rank calculation with tests"
 - Consumes: `supabase` client from `src/lib/supabase.ts` (Phase 1), `rankBetween` from `src/lib/ranking.ts`.
 - Produces: the `Task` type and the functions below, consumed by every UI phase from Phase 3 onward. Later phases must use these exact names and signatures — don't invent parallel ad-hoc queries in components.
 
-- [ ] **Step 1: Write `src/lib/tasks.ts`**
+- [x] **Step 1: Write `src/lib/tasks.ts`**
 
 ```ts
 import { supabase } from './supabase';
@@ -224,7 +224,7 @@ export async function markTriaged(taskId: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: Temporary debug view in `src/App.tsx`**
+- [x] **Step 2: Temporary debug view in `src/App.tsx`**
 
 Replace the "signed in as…" placeholder body with a call to `listActiveTasks()` on mount and a raw `<pre>` dump, purely to prove the round trip works end to end:
 
@@ -260,7 +260,7 @@ export default App;
 
 Run `npm run dev`, sign in. You should see the one task you manually inserted in Task 1 rendered as JSON. In the Supabase Table Editor, insert a second row for your `user_id` with a different `rank`; refresh the app; confirm it appears in the array **in ascending rank order**.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lib/tasks.ts src/App.tsx
