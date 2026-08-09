@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, updateTaskStatus, type Task } from '../lib/tasks';
-import { rankBetween } from '../lib/ranking';
+import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, type Task } from '../lib/tasks';
+import { rankBetween, renumber } from '../lib/ranking';
 
 export function useTasks() {
   const { session } = useAuth();
@@ -38,5 +38,14 @@ export function useTasks() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }
 
-  return { tasks, loading, addTask, completeTask, dropTask, reload };
+  function reorderTasks(newOrder: Task[]) {
+    setTasks(newOrder);
+  }
+
+  async function commitReorder() {
+    const ranks = renumber(tasks.length);
+    await updateTaskRanks(tasks.map((t, i) => ({ id: t.id, rank: ranks[i] })));
+  }
+
+  return { tasks, loading, addTask, completeTask, dropTask, reorderTasks, commitReorder, reload };
 }
