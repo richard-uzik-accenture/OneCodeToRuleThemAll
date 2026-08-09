@@ -172,7 +172,7 @@ git commit -m "feat: insert task at a specific index"
 - Consumes: `startCompare`, `narrow` from `src/lib/compare.ts`.
 - Produces: `{ pendingTitle: string | null, candidate: Task | null, active: boolean, begin: (title: string) => void, decide: (newTaskWon: boolean) => void }`, consumed by `Today.tsx`.
 
-- [ ] **Step 1: Write `src/hooks/useCompareInsertion.ts`**
+- [x] **Step 1: Write `src/hooks/useCompareInsertion.ts`**
 
 ```ts
 import { useState } from 'react';
@@ -216,7 +216,7 @@ export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useCompareInsertion.ts
