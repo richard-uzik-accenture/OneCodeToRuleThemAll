@@ -112,9 +112,12 @@ button {
   border: 1.75px solid var(--dusk);
   background: transparent;
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--dusk);
 }
 .task-row .title { font-size: 14px; color: var(--ink); line-height: 1.35; }
-.task-row .close { border: none; background: none; color: var(--haze); font-size: 15px; cursor: pointer; }
+.task-row .close { border: none; background: none; color: var(--haze); font-size: 15px; cursor: pointer; display: grid; place-items: center; }
 
 @media (min-width: 900px) {
   .task-row {

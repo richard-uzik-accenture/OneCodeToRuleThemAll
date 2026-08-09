@@ -1,6 +1,8 @@
 import { Reorder } from 'framer-motion';
 import type { Task } from '../lib/tasks';
 import { useLongPressDrag } from '../hooks/useLongPressDrag';
+import { Check } from './icons/Check';
+import { Close } from './icons/Close';
 
 interface TaskRowProps {
   task: Task;
@@ -26,9 +28,13 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowPr
       style={{ touchAction: 'pan-y' }}
     >
       <span className="rank" aria-hidden="true" />
-      <button aria-label="mark settled" onClick={() => onComplete(task.id)} className="check" />
+      <button aria-label="mark settled" onClick={() => onComplete(task.id)} className="check">
+        <Check width={12} height={12} />
+      </button>
       <span className="title">{task.title}</span>
-      <button aria-label="let it go" onClick={() => onDrop(task.id)} className="close">×</button>
+      <button aria-label="let it go" onClick={() => onDrop(task.id)} className="close">
+        <Close width={14} height={14} />
+      </button>
     </Reorder.Item>
   );
 }
