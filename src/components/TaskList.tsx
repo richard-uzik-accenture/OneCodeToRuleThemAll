@@ -10,15 +10,11 @@ interface TaskListProps {
 
 export function TaskList({ tasks, onComplete, onDrop }: TaskListProps) {
   if (tasks.length === 0) {
-    return (
-      <p style={{ color: 'var(--dusk)', fontFamily: 'var(--font-body)', padding: 18 }}>
-        nothing on the list yet — add your first task below.
-      </p>
-    );
+    return <p className="empty-state">nothing on the list yet — tap + to add your first task.</p>;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 18, paddingBottom: 96 }}>
+    <div className="task-list">
       <AnimatePresence>
         {tasks.map((task) => (
           <motion.div

@@ -91,3 +91,46 @@ button {
   letter-spacing: -0.01em;
 }
 .list-sub { font-size: 13px; color: var(--dusk); margin: 0 0 28px; }
+
+.task-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 22px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 13px;
+  border-radius: 14px;
+  background: var(--mist);
+  margin-bottom: 8px;
+}
+.task-row .rank { display: none; }
+.task-row .check {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1.75px solid var(--dusk);
+  background: transparent;
+  cursor: pointer;
+}
+.task-row .title { font-size: 14px; color: var(--ink); line-height: 1.35; }
+.task-row .close { border: none; background: none; color: var(--haze); font-size: 15px; cursor: pointer; }
+
+@media (min-width: 900px) {
+  .task-row {
+    grid-template-columns: 24px 20px 1fr 22px;
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid var(--mist);
+    padding: 13px 0;
+    margin-bottom: 0;
+  }
+  .task-row .rank {
+    display: inline;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--haze);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.empty-state { color: var(--dusk); font-family: var(--font-body); padding: 18px 0; }
+.task-list { display: flex; flex-direction: column; }
