@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { DEV_MODE, mockSession } from '../lib/devMock';
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(DEV_MODE ? mockSession : null);
+  const [loading, setLoading] = useState(!DEV_MODE);
 
   useEffect(() => {
+    if (DEV_MODE) return;
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
@@ -30,6 +33,10 @@ export function useAuth() {
   }
 
   async function signOut() {
+    if (DEV_MODE) {
+      setSession(null);
+      return;
+    }
     await supabase.auth.signOut();
   }
 
