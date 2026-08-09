@@ -25,6 +25,7 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowPr
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
       className="task-row"
+      transition={{ layout: { type: 'spring', stiffness: 300, damping: 30, mass: 0.9 } }}
       style={{ touchAction: 'pan-y' }}
     >
       <span className="rank" aria-hidden="true" />
