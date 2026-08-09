@@ -18,7 +18,7 @@
 
 ## Task 1: Scaffold the Vite project
 
-- [ ] **Step 1: Create the project**
+- [x] **Step 1: Create the project**
 
 ```bash
 npm create vite@latest . -- --template react-ts
@@ -26,14 +26,14 @@ npm create vite@latest . -- --template react-ts
 
 If the directory isn't empty (it has `PRODUCT.md`, `branding.md`, `idea.md`, `docs/`), run `npm create vite@latest reflow-tmp -- --template react-ts` in a sibling folder and move its contents (`src/`, `public/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, `package.json`) into the project root, then delete `reflow-tmp`.
 
-- [ ] **Step 2: Install dependencies**
+- [x] **Step 2: Install dependencies**
 
 ```bash
 npm install @supabase/supabase-js framer-motion
 npm install -D vitest @vitest/ui
 ```
 
-- [ ] **Step 3: Add `.gitignore` entries**
+- [x] **Step 3: Add `.gitignore` entries**
 
 ```
 node_modules
@@ -41,12 +41,12 @@ dist
 .env.local
 ```
 
-- [ ] **Step 4: Confirm the default template runs**
+- [x] **Step 4: Confirm the default template runs**
 
 Run: `npm run dev`
 Expected: dev server starts, default Vite+React page loads at the printed localhost URL with no console errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -58,7 +58,7 @@ git commit -m "chore: scaffold Vite + React + TypeScript project"
 **Interfaces:**
 - Produces: CSS custom properties on `:root`, consumed by every component in later phases. Use these exact names.
 
-- [ ] **Step 1: Create `src/styles/tokens.css`**
+- [x] **Step 1: Create `src/styles/tokens.css`**
 
 ```css
 :root {
@@ -90,7 +90,7 @@ git commit -m "chore: scaffold Vite + React + TypeScript project"
 
 Note: `Switzer`/`General Sans` are not bundled yet — Phase 10 (brand polish) sources and self-hosts the actual font files. Until then the `system-ui` fallback renders; don't block earlier phases on font licensing.
 
-- [ ] **Step 2: Create `src/styles/global.css`**
+- [x] **Step 2: Create `src/styles/global.css`**
 
 ```css
 @import './tokens.css';
@@ -113,15 +113,15 @@ button {
 }
 ```
 
-- [ ] **Step 3: Import global styles**
+- [x] **Step 3: Import global styles**
 
 In `src/main.tsx`, add `import './styles/global.css'` above the `App` import.
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 Run `npm run dev`, open the page, confirm the background is the warm paper color (`#FAF8F4`), not white.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/styles src/main.tsx
@@ -132,16 +132,16 @@ git commit -m "feat: add Reflow design tokens"
 
 You need a real Supabase project for this step — create one at supabase.com (free tier) if you haven't. Note the Project URL and anon public key from Project Settings → API.
 
-- [ ] **Step 1: Create `.env.example`**
+- [x] **Step 1: Create `.env.example`**
 
 ```
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 ```
 
-- [ ] **Step 2: Create `.env.local`** with your real project's URL and anon key (this file is gitignored — never commit it)
+- [x] **Step 2: Create `.env.local`** with your real project's URL and anon key (this file is gitignored — never commit it)
 
-- [ ] **Step 3: Create `src/lib/supabase.ts`**
+- [x] **Step 3: Create `src/lib/supabase.ts`**
 
 ```ts
 import { createClient } from '@supabase/supabase-js';
@@ -156,11 +156,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 ```
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 Add a temporary line to `src/App.tsx` inside the component: `console.log('supabase client', supabase)`. Run `npm run dev`, open the browser console, confirm no thrown error and the client object logs. Remove the console.log afterward.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/supabase.ts .env.example .gitignore
@@ -171,17 +171,17 @@ git commit -m "feat: connect Supabase client"
 
 This is a dashboard task, not code.
 
-- [ ] In the Supabase dashboard: Authentication → Providers → confirm Email is enabled and Authentication → Settings → "Allow new users to sign up" is on (it's on by default). Sign-up happens through the app's own form (Task 5), not by hand in the dashboard — the product is meant to be open to anyone eventually, so build the real flow now rather than a single hand-created account.
-- [ ] In Authentication → Settings, disable "Confirm email" for now, so a new account is usable immediately after signing up, with no email round-trip to build a UI for.
+- [x] In the Supabase dashboard: Authentication → Providers → confirm Email is enabled and Authentication → Settings → "Allow new users to sign up" is on (it's on by default). Sign-up happens through the app's own form (Task 5), not by hand in the dashboard — the product is meant to be open to anyone eventually, so build the real flow now rather than a single hand-created account.
+- [x] In Authentication → Settings, disable "Confirm email" for now, so a new account is usable immediately after signing up, with no email round-trip to build a UI for.
 
-`[OPEN DECISION]`: leaving "Confirm email" off means anyone can sign up with any email address, unconfirmed, starting now. That's an acceptable shortcut while you're still effectively the only real user, but it's a gap to close before wider public use (spam/throwaway signups, someone signing up with an email that isn't theirs). Tracked in `11-open-decisions.md` §5 — revisit before treating this as a real public launch.
+`[OPEN DECISION]`: leaving "Confirm email" off means anyone can sign up with any email address, unconfirmed, starting now. That's an acceptable shortcut while you're still effectively the only real user, but it's a gap to close before wider public use (spam/throwaway signups, someone signing up with an email that isn't theirs). Tracked in `11-open-decisions.md` §4 — revisit before treating this as a real public launch.
 
 ## Task 5: Auth hook, landing page, and sign-in/up screen
 
 **Interfaces:**
 - Produces: `useAuth()` hook returning `{ session: Session | null, loading: boolean, signIn(email, password): Promise<{ error: string | null }>, signUp(email, password): Promise<{ error: string | null }>, signOut(): Promise<void> }`, consumed by `App.tsx` and every later phase's data hooks (they read `session.user.id` for `user_id` on inserts).
 
-- [ ] **Step 1: Create `src/hooks/useAuth.ts`**
+- [x] **Step 1: Create `src/hooks/useAuth.ts`**
 
 ```ts
 import { useEffect, useState } from 'react';
@@ -225,7 +225,7 @@ export function useAuth() {
 
 With "Confirm email" off (Task 4), `signUp` returns an already-usable session — no separate "check your email" state to build.
 
-- [ ] **Step 2: Create `src/pages/Landing.tsx`**
+- [x] **Step 2: Create `src/pages/Landing.tsx`**
 
 The public entry point for anyone who isn't signed in — a short info page, not a form. This is what an unknown visitor sees first.
 
@@ -268,7 +268,7 @@ export function Landing({ onGetStarted }: LandingProps) {
 }
 ```
 
-- [ ] **Step 3: Create `src/pages/Auth.tsx`**
+- [x] **Step 3: Create `src/pages/Auth.tsx`**
 
 One form, two modes (sign in / sign up), toggled — not two separate screens, to keep this simple.
 
@@ -345,7 +345,7 @@ export function Auth({ onBack }: AuthProps) {
 
 Both pages are intentionally unstyled beyond the tokens — Phase 10 gives every screen its full brand pass. The goal here is a working auth workflow, not finished visuals.
 
-- [ ] **Step 4: Wire it all into `src/App.tsx`**
+- [x] **Step 4: Wire it all into `src/App.tsx`**
 
 ```tsx
 import { useState } from 'react';
@@ -376,7 +376,7 @@ export default App;
 
 This authenticated shell (and its temporary sign-out button) is a placeholder — Phase 3 replaces it with the real `Today` page, which carries the sign-out control forward into a proper header.
 
-- [ ] **Step 5: Test it yourself**
+- [x] **Step 5: Test it yourself**
 
 Run `npm run dev`. Confirm the full workflow:
 1. You land on the **landing page** first (lowercase "reflow" heading, tagline, a "sign in" button) — not directly on a form.
@@ -387,7 +387,7 @@ Run `npm run dev`. Confirm the full workflow:
 6. Signing in with a wrong password shows an error message (in neutral `--stone`, not amber — amber is reserved for the compare duel, per `branding.md`) and does not proceed.
 7. Refresh the page while signed in — you stay signed in and land on the shell directly (not bounced back to the landing page).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/App.tsx src/hooks/useAuth.ts src/pages/Landing.tsx src/pages/Auth.tsx
