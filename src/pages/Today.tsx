@@ -4,7 +4,7 @@ import { TaskList } from '../components/TaskList';
 import { AddBar } from '../components/AddBar';
 
 export function Today() {
-  const { tasks, loading, addTask } = useTasks();
+  const { tasks, loading, addTask, completeTask, dropTask } = useTasks();
   const { signOut } = useAuth();
 
   if (loading) return null;
@@ -22,7 +22,7 @@ export function Today() {
           sign out
         </button>
       </header>
-      <TaskList tasks={tasks} />
+      <TaskList tasks={tasks} onComplete={completeTask} onDrop={dropTask} />
       <AddBar onAdd={addTask} />
     </div>
   );

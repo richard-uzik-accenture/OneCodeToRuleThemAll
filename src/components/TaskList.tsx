@@ -1,11 +1,14 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import type { Task } from '../lib/tasks';
 import { TaskRow } from './TaskRow';
 
 interface TaskListProps {
   tasks: Task[];
+  onComplete: (id: string) => void;
+  onDrop: (id: string) => void;
 }
 
-export function TaskList({ tasks }: TaskListProps) {
+export function TaskList({ tasks, onComplete, onDrop }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <p style={{ color: 'var(--stone)', fontFamily: 'var(--font-body)', padding: 18 }}>
@@ -16,9 +19,19 @@ export function TaskList({ tasks }: TaskListProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 18, paddingBottom: 96 }}>
-      {tasks.map((task) => (
-        <TaskRow key={task.id} task={task} />
-      ))}
+      <AnimatePresence>
+        {tasks.map((task) => (
+          <motion.div
+            key={task.id}
+            layout
+            initial={false}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.32, ease: 'easeOut' }}
+          >
+            <TaskRow task={task} onComplete={onComplete} onDrop={onDrop} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
