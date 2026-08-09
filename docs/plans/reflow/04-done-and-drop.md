@@ -18,7 +18,7 @@
 **Interfaces:**
 - Produces (added to the Phase 3 hook — do not rename the existing `tasks`/`loading`/`addTask`/`reload`): `completeTask: (id: string) => Promise<void>`, `dropTask: (id: string) => Promise<void>`.
 
-- [ ] **Step 1: Modify `src/hooks/useTasks.ts`**
+- [x] **Step 1: Modify `src/hooks/useTasks.ts`**
 
 Add these two functions inside `useTasks`, and return them alongside the existing ones:
 
@@ -36,7 +36,7 @@ Add these two functions inside `useTasks`, and return them alongside the existin
 
 Update the import line to `import { listActiveTasks, createTask, updateTaskStatus, type Task } from '../lib/tasks';` and the return statement to `return { tasks, loading, addTask, completeTask, dropTask, reload };`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useTasks.ts
@@ -50,7 +50,7 @@ Swipe is reserved for binary decisions elsewhere in the app (keep/drop leftovers
 **Interfaces:**
 - Consumes (added to the Phase 3 props): `onComplete: (id: string) => void`, `onDrop: (id: string) => void`.
 
-- [ ] **Step 1: Modify `src/components/TaskRow.tsx`**
+- [x] **Step 1: Modify `src/components/TaskRow.tsx`**
 
 ```tsx
 import type { Task } from '../lib/tasks';
@@ -109,7 +109,7 @@ export function TaskRow({ task, onComplete, onDrop }: TaskRowProps) {
 
 The `aria-label`s use branding.md's vocabulary ("settled", "let it go") rather than generic terms — this is a small down payment on Phase 10's full tone-of-voice pass, not a substitute for it.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/TaskRow.tsx
@@ -121,7 +121,7 @@ git commit -m "feat: done and drop controls on task rows"
 **Interfaces:**
 - Consumes: `framer-motion`'s `motion` and `AnimatePresence`.
 
-- [ ] **Step 1: Modify `src/components/TaskList.tsx`**
+- [x] **Step 1: Modify `src/components/TaskList.tsx`**
 
 ```tsx
 import { AnimatePresence, motion } from 'framer-motion';
@@ -165,7 +165,7 @@ export function TaskList({ tasks, onComplete, onDrop }: TaskListProps) {
 
 `layout` on each row is what makes the *remaining* rows slide smoothly into the gap left by the removed one — this is the same prop later phases rely on for the reorder and compare-insertion "reflow" animation, so this is the first place it's introduced. `exit` with `height: 0` is the "soft fade and collapse" branding.md calls for; there's no red, no shake.
 
-- [ ] **Step 2: Update `src/pages/Today.tsx`** to pass the new props through
+- [x] **Step 2: Update `src/pages/Today.tsx`** to pass the new props through
 
 ```tsx
 import { useTasks } from '../hooks/useTasks';
@@ -199,7 +199,7 @@ export function Today() {
 }
 ```
 
-- [ ] **Step 3: Test it yourself**
+- [x] **Step 3: Test it yourself**
 
 Run `npm run dev`. Add three tasks. Confirm:
 1. Clicking the circle on the middle task fades and collapses it out, and the row below smoothly slides up to fill the gap (not an instant jump).
@@ -207,7 +207,7 @@ Run `npm run dev`. Add three tasks. Confirm:
 3. Refresh the page — completed/dropped tasks stay gone (confirms the Supabase `status` update persisted, not just local removal).
 4. In the Supabase Table Editor, confirm the row's `status` is `'done'` or `'dropped'` as expected, and `completed_at` is set for the done one.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/TaskList.tsx src/pages/Today.tsx
