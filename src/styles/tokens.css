@@ -1,0 +1,25 @@
+:root {
+  /* Brand */
+  --petrol-ink: #0F2E2F;
+  --petrol: #1A4D4A;
+  --shallow: #3E7A73;
+  --signal-amber: #F2A63B;
+  --amber-wash: #FBE6C2;
+
+  /* Neutrals */
+  --paper: #FAF8F4;
+  --sand: #EDE9E1;
+  --silt: #C9C3B8;
+  --stone: #7A756C;
+  --graphite: #2A2825;
+
+  /* Type */
+  --font-display: 'Switzer', 'General Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
+
+  /* Motion (see branding.md §6) */
+  --ease-reflow: cubic-bezier(0.34, 1.56, 0.64, 1); /* gentle spring approximation for CSS; components using Framer Motion use a real spring config instead */
+  --duration-reflow: 380ms;
+  --duration-decide: 175ms;
+}
