@@ -32,7 +32,7 @@ export function Auth({ onBack }: AuthProps) {
         >
           ← back
         </button>
-        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)', fontVariantLigatures: 'common-ligatures', fontFeatureSettings: '"liga" 1' }}>
           reflow
         </h1>
         <input

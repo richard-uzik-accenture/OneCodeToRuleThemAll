@@ -1,3 +1,16 @@
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
 :root {
   /* Brand */
   --ink-violet: #171335;
@@ -14,7 +27,7 @@
   --ink: #1A1A2E;
 
   /* Type */
-  --font-display: 'Switzer', 'General Sans', system-ui, sans-serif;
+  --font-display: 'General Sans', 'Switzer', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
 

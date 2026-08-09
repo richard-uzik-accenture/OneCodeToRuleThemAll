@@ -6,7 +6,7 @@ export function Landing({ onGetStarted }: LandingProps) {
   return (
     <div style={{ display: 'grid', placeItems: 'center', height: '100%', textAlign: 'center', padding: 24 }}>
       <div style={{ maxWidth: 360 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)', fontVariantLigatures: 'common-ligatures', fontFeatureSettings: '"liga" 1' }}>
           reflow
         </h1>
         <p style={{ color: 'var(--ink)', fontFamily: 'var(--font-body)' }}>
