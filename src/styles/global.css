@@ -411,3 +411,32 @@ button {
   .flow-header, .flow-steps, .flow-merge { width: 460px; }
   .flow-merge { padding: 24px 0; }
 }
+
+.rollover-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--mist);
+  margin-bottom: 18px;
+}
+.rollover-prompt {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--violet);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+.rollover-dismiss {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--dusk);
+  background: none;
+  border: none;
+  cursor: pointer;
+}

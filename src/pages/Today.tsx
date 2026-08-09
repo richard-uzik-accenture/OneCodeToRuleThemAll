@@ -2,6 +2,7 @@ import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useCompareInsertion } from '../hooks/useCompareInsertion';
 import { useMorningFlow } from '../hooks/useMorningFlow';
+import { useRolloverPrompt } from '../hooks/useRolloverPrompt';
 import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
@@ -19,6 +20,7 @@ export function Today() {
   });
 
   const morning = useMorningFlow({ tasks, keepLeftover, dropTask, addTask });
+  const rollover = useRolloverPrompt(tasks);
 
   if (loading) return null;
 
@@ -65,6 +67,14 @@ export function Today() {
       </header>
 
       <main className="today-main">
+        {rollover.hasLeftovers && !rollover.dismissed && (
+          <div className="rollover-banner">
+            <button className="rollover-prompt" onClick={morning.start}>
+              still open from before — start my day?
+            </button>
+            <button className="rollover-dismiss" onClick={rollover.dismiss}>not now</button>
+          </div>
+        )}
         <h1 className="list-heading">today</h1>
         <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
         <TaskList
