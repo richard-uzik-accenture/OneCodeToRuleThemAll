@@ -36,6 +36,12 @@ Three sub-decisions from `PRODUCT.md`, all currently shipped with the simplest w
 
 **If you decide to turn confirmation on:** flip the Supabase setting, then `Auth.tsx`'s sign-up path needs a new state — after `signUp()` succeeds but before a session exists, show a "check your email" message instead of assuming the user lands straight in the app.
 
-## 5. Parked for v2 (not part of this plan at all)
+## 5. PWA icon PNGs still missing
+
+**Where this comes from:** Phase 10 Task 6 (PWA manifest) references `public/icon-192.png` and `public/icon-512.png`, but generating them needs rasterizing `public/favicon.svg` to PNG at those two sizes — no SVG-to-PNG tool was available in the build environment, so this step was skipped rather than guessed at.
+
+**To finish it:** export `public/favicon.svg` (the pinned "Concept B — the reflow" mark) to PNG at 192×192 and 512×512, via any image editor or online SVG-to-PNG converter, and save them at those two paths. Once both files exist, the PWA install icon/splash screen will show the real brand mark instead of falling back to a generic one — no code changes needed, `vite.config.ts`'s manifest already points at these paths.
+
+## 6. Parked for v2 (not part of this plan at all)
 
 idea.md explicitly scopes "plan vs. actual" analytics (which days/meetings tend to blow up the plan, how consistently the plan holds) out of v1. Nothing in Phases 1-10 supports it, and no phase should be retrofitted to sneak it in — if you want it, it's a new plan built on top of a working v1, not a task squeezed into this one.
