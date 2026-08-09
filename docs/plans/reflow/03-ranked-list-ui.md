@@ -19,7 +19,7 @@
 - Consumes: `listActiveTasks`, `createTask`, `Task` from `src/lib/tasks.ts`; `rankBetween` from `src/lib/ranking.ts`; `session` from `useAuth()`.
 - Produces (this phase's subset — Phases 4/5/6 add more functions to this same object, never rename these): `{ tasks: Task[], loading: boolean, addTask: (title: string) => Promise<void>, reload: () => Promise<void> }`.
 
-- [ ] **Step 1: Write `src/hooks/useTasks.ts`**
+- [x] **Step 1: Write `src/hooks/useTasks.ts`**
 
 ```ts
 import { useCallback, useEffect, useState } from 'react';
@@ -56,9 +56,9 @@ export function useTasks() {
 }
 ```
 
-- [ ] **Step 2: Test it yourself** — deferred to the end of this phase, once there's a UI to see it through.
+- [x] **Step 2: Test it yourself** — deferred to the end of this phase, once there's a UI to see it through.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/hooks/useTasks.ts
@@ -70,7 +70,7 @@ git commit -m "feat: useTasks hook with append-only addTask"
 **Interfaces:**
 - Consumes: `onAdd: (title: string) => void` prop.
 
-- [ ] **Step 1: Write `src/components/AddBar.tsx`**
+- [x] **Step 1: Write `src/components/AddBar.tsx`**
 
 ```tsx
 import { useState, type FormEvent } from 'react';
@@ -140,7 +140,7 @@ export function AddBar({ onAdd }: AddBarProps) {
 
 Note: amber is deliberately absent here — branding.md reserves it for decision moments only, and adding a task is not one of those (see the overview's Global Constraints).
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/AddBar.tsx
@@ -153,7 +153,7 @@ git commit -m "feat: persistent bottom quick-add bar"
 - `TaskRow` consumes: `task: Task` prop.
 - `TaskList` consumes: `tasks: Task[]` prop.
 
-- [ ] **Step 1: Write `src/components/TaskRow.tsx`**
+- [x] **Step 1: Write `src/components/TaskRow.tsx`**
 
 The rounded-bar shape echoes the "reflow" logo mark (a stack of rounded bars) — this row *is* the logo's shape, at content scale.
 
@@ -181,7 +181,7 @@ export function TaskRow({ task }: TaskRowProps) {
 }
 ```
 
-- [ ] **Step 2: Write `src/components/TaskList.tsx`**
+- [x] **Step 2: Write `src/components/TaskList.tsx`**
 
 ```tsx
 import type { Task } from '../lib/tasks';
@@ -214,7 +214,7 @@ The `paddingBottom: 96` keeps the last row clear of the fixed `AddBar`.
 
 The empty-state copy ("nothing on the list yet…") follows branding.md's tone rules: no guilt language, calm and factual. It's a placeholder good enough to ship — Phase 10's tone-of-voice pass revisits every string in the app together, this one included.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/TaskRow.tsx src/components/TaskList.tsx
@@ -223,7 +223,7 @@ git commit -m "feat: task row and list components"
 
 ## Task 4: `Today` page and wiring
 
-- [ ] **Step 1: Write `src/pages/Today.tsx`**
+- [x] **Step 1: Write `src/pages/Today.tsx`**
 
 Includes a small header carrying forward the sign-out control from Phase 1's placeholder shell — this is the app's real home now, so sign-out needs a permanent, visible home too.
 
@@ -259,7 +259,7 @@ export function Today() {
 }
 ```
 
-- [ ] **Step 2: Update `src/App.tsx`** to render it instead of the debug dump
+- [x] **Step 2: Update `src/App.tsx`** to render it instead of the debug dump
 
 ```tsx
 import { useState } from 'react';
@@ -284,7 +284,7 @@ function App() {
 export default App;
 ```
 
-- [ ] **Step 3: Test it yourself**
+- [x] **Step 3: Test it yourself**
 
 Run `npm run dev`, sign in. Confirm:
 1. Any tasks you inserted manually in Phase 2 render as rounded rows, below the new header.
@@ -293,7 +293,7 @@ Run `npm run dev`, sign in. Confirm:
 4. With zero tasks (delete them all via the Supabase Table Editor and refresh), the empty-state message shows instead of a blank area.
 5. Click "sign out" in the header — you land back on the landing page (not the auth form), and signing back in returns you to your list.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/pages/Today.tsx src/App.tsx
