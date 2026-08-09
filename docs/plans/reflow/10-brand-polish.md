@@ -1,8 +1,8 @@
 # Phase 10: Brand Polish
 
-> Depends on: Phase 9 (the whole app is functionally complete). Read `branding.md` in full before starting this phase — it's the source of truth for every task below, more than this file's paraphrasing of it.
+> Depends on: Phase 9 (the whole app is functionally complete) and [04b-design-system-revision.md](04b-design-system-revision.md) (color palette and structural layout — rail/column desktop, responsive rows, floating add button, single-card duel, morning-flow step indicator — were already revised there, mid-build). Read `branding.md` in full before starting this phase — it's the source of truth for every task below, more than this file's paraphrasing of it, and note it now specifies **ink violet + signal coral**, not the original petrol-teal + amber this file's hex values below have already been updated to match.
 
-**Goal of this phase:** every earlier phase shipped functional-but-plain UI (system fonts, ad hoc inline styles, a text "×" instead of a real icon, `easeOut` tweens instead of tuned spring physics). This phase closes the gap against `branding.md` across the whole app in one pass, rather than each earlier phase re-deriving brand rules mid-build.
+**Goal of this phase:** by this point every screen has real color and real structural layout (from 04b), but still uses system fonts, a text "×" instead of a real icon, and `easeOut` tweens instead of tuned spring physics. This phase closes those specific remaining gaps against `branding.md` — fonts, icons, motion tuning, tone-of-voice copy, and PWA installability — in one pass. **This phase does not touch color or layout** — that scope moved to 04b once it became clear redoing styling twice (once now, once "properly" later) wasted more effort than fixing it once, mid-build.
 
 ## Files
 
@@ -20,19 +20,19 @@
 
 ## Task 1: App icon and favicon
 
-`branding.md` §1 specifies Concept B ("The reflow") as the primary mark, on a `petrol ink #0F2E2F` background.
+`branding.md` §1 specifies Concept B ("The reflow") as the primary mark, on an `ink violet #171335` background.
 
 - [ ] **Step 1: Create `public/favicon.svg`** using the exact SVG from `branding.md`'s "B — The reflow" source block:
 
 ```svg
 <svg viewBox="0 0 118 118" xmlns="http://www.w3.org/2000/svg">
-  <rect width="118" height="118" rx="26" fill="#0F2E2F"/>
-  <circle cx="80" cy="61" r="14" fill="#F2A63B"/>
-  <rect x="24" y="23" width="70" height="6" rx="3" fill="#FAF8F4"/>
-  <rect x="24" y="37" width="70" height="6" rx="3" fill="#FAF8F4"/>
-  <rect x="24" y="51" width="36" height="6" rx="3" fill="#FAF8F4"/>
-  <rect x="24" y="65" width="36" height="6" rx="3" fill="#FAF8F4"/>
-  <rect x="24" y="79" width="70" height="6" rx="3" fill="#FAF8F4"/>
+  <rect width="118" height="118" rx="26" fill="#171335"/>
+  <circle cx="80" cy="61" r="14" fill="#FF6B4A"/>
+  <rect x="24" y="23" width="70" height="6" rx="3" fill="#FAF9FB"/>
+  <rect x="24" y="37" width="70" height="6" rx="3" fill="#FAF9FB"/>
+  <rect x="24" y="51" width="36" height="6" rx="3" fill="#FAF9FB"/>
+  <rect x="24" y="65" width="36" height="6" rx="3" fill="#FAF9FB"/>
+  <rect x="24" y="79" width="70" height="6" rx="3" fill="#FAF9FB"/>
 </svg>
 ```
 
@@ -142,45 +142,19 @@ export function Close(props: SVGProps<SVGSVGElement>) {
 }
 ```
 
-- [ ] **Step 3: Modify `src/components/TaskRow.tsx`** — replace the bare circle button and the text `×` with the two new icon components. Add the imports `import { Check } from './icons/Check';` and `import { Close } from './icons/Close';`, then replace the two `<button>` elements inside the `Reorder.Item` with:
+- [ ] **Step 3: Modify `src/components/TaskRow.tsx`** — replace the bare circle button's empty content and the text `×` with the two new icon components. `TaskRow` already uses 04b's className-based structure (`className="check"` / `className="close"`, styled via `global.css`, not inline `style` objects) — this step only changes what renders *inside* those two buttons, not their styling. Add the imports `import { Check } from './icons/Check';` and `import { Close } from './icons/Close';`, then update the two buttons:
 
 ```tsx
-      <button
-        aria-label="mark settled"
-        onClick={() => onComplete(task.id)}
-        style={{
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          border: '1.75px solid var(--stone)',
-          background: 'transparent',
-          flexShrink: 0,
-          cursor: 'pointer',
-          display: 'grid',
-          placeItems: 'center',
-          color: 'var(--stone)',
-        }}
-      >
+      <button aria-label="mark settled" onClick={() => onComplete(task.id)} className="check">
         <Check width={12} height={12} />
       </button>
-      <span style={{ flex: 1 }}>{task.title}</span>
-      <button
-        aria-label="let it go"
-        onClick={() => onDrop(task.id)}
-        style={{
-          border: 'none',
-          background: 'transparent',
-          color: 'var(--silt)',
-          cursor: 'pointer',
-          display: 'grid',
-          placeItems: 'center',
-        }}
-      >
-        <Close />
+      <span className="title">{task.title}</span>
+      <button aria-label="let it go" onClick={() => onDrop(task.id)} className="close">
+        <Close width={14} height={14} />
       </button>
 ```
 
-This replaces the row's middle section (the circle button, the title `<span>`, and the drop button) — the surrounding `Reorder.Item` props and its `style` object from Phase 5 are unchanged.
+Add `display: grid; place-items: center; color: var(--dusk);` to `.check` and `display: grid; place-items: center;` to `.close` in `global.css` (both currently just center a bare circle/glyph via their existing declarations — this only adds the flex/grid centering needed for an SVG child instead of a text character, which centers automatically).
 
 - [ ] **Step 4: Test it yourself**
 
@@ -236,7 +210,7 @@ git commit -m "feat: tune reflow spring to match brand motion spec"
 | `src/components/TaskList.tsx` | "nothing on the list yet — add your first task below." | Calm, factual, no guilt — already compliant, but re-read against the say/not table for tone consistency with the rest. |
 | `src/components/LeftoverCard.tsx` | "still open · {remaining} left" | Uses the exact locked phrase "still open" (not "overdue") — compliant, verify it stayed that way. |
 | `src/components/BrainDump.tsx` | "what's new today? add as many as you want, in any order — you'll sort them next." | Check for stray exclamation marks or coach-y phrasing. |
-| `src/components/CompareDuel.tsx` | "which first?" | This is branding.md's own example of the one high-energy, dry-wit moment — keep it exactly as specified, don't soften or embellish it. |
+| `src/components/CompareDuel.tsx` | "more urgent than '{candidate.title}'?" (see [04b-design-system-revision.md](04b-design-system-revision.md)'s single-card redesign — the original "which first?" two-box copy no longer applies) | This is the app's one high-energy, dry-wit moment per branding.md — check the actual shipped phrasing still reads decisive and slightly playful, not clinical, even though the exact wording changed from the originally-planned "which first?" |
 | `src/pages/Auth.tsx` | Error messages surfaced from Supabase Auth (e.g. "Invalid login credentials") | These come from Supabase directly and won't match the brand voice out of the box — wrap them in a small map of known error codes to on-brand phrasing, e.g. `"that password doesn't match"` instead of the raw Supabase string, falling back to the raw message for anything unmapped. |
 | `src/pages/Landing.tsx` | Tagline and one-liner ("your day doesn't fall apart — it reflows." / "one ranked list for today...") | Already on-brand (from `branding.md`'s own thesis line) — check it still reads calm and factual next to whatever else got added to the page since Phase 1. |
 | `src/hooks/useRolloverPrompt.ts` banner copy (in `Today.tsx`) | "still open from before — start my day?" / "not now" | Verify against the say/not table — this is the closest the app comes to "you have unfinished work," so it's worth a second read specifically for guilt-adjacent framing. |
@@ -255,7 +229,7 @@ git commit -m "polish: tone-of-voice pass against branding.md"
 This is the one product requirement (PWA-enabled) that no earlier phase touches at all. It belongs here, after Task 1, because the manifest needs real app icons — reusing `public/icon-192.png`/`icon-512.png` from Task 1 rather than inventing separate PWA-only artwork.
 
 **Interfaces:**
-- Consumes: `public/icon-192.png`, `public/icon-512.png` (Task 1), the brand colors from `branding.md` (`petrol-ink` / `paper`).
+- Consumes: `public/icon-192.png`, `public/icon-512.png` (Task 1), the brand colors from `branding.md` (`ink-violet` / `paper`).
 - Produces: an installable app (manifest + service worker), no new app code — this task is config only.
 
 - [ ] **Step 1: Install the plugin**
@@ -280,8 +254,8 @@ export default defineConfig({
         name: 'reflow',
         short_name: 'reflow',
         description: 'your day doesn\'t fall apart — it reflows.',
-        theme_color: '#0F2E2F',
-        background_color: '#FAF8F4',
+        theme_color: '#171335',
+        background_color: '#FAF9FB',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -300,19 +274,19 @@ export default defineConfig({
 });
 ```
 
-`theme_color` (`petrol-ink`) and `background_color` (`paper`) reuse the exact brand tokens from `tokens.css` — don't invent separate values here.
+`theme_color` (`ink-violet`) and `background_color` (`paper`) reuse the exact brand tokens from `tokens.css` — don't invent separate values here.
 
 - [ ] **Step 3: Modify `index.html`** — add the theme-color meta tag and apple-touch-icon (iOS Safari doesn't read the manifest's icons for the home-screen icon; it needs this explicitly)
 
 ```html
-<meta name="theme-color" content="#0F2E2F" />
+<meta name="theme-color" content="#171335" />
 <link rel="apple-touch-icon" href="/icon-192.png" />
 ```
 
 - [ ] **Step 4: Test it yourself**
 
 Run `npm run build && npm run preview` (PWA install prompts don't reliably fire on the plain `dev` server). Open the preview URL:
-1. Desktop Chrome/Edge: confirm an install icon appears in the address bar; install it and confirm it opens in its own window, titled "reflow", with the petrol-ink-background icon.
+1. Desktop Chrome/Edge: confirm an install icon appears in the address bar; install it and confirm it opens in its own window, titled "reflow", with the ink-violet-background icon.
 2. Android Chrome (via the deployed Vercel URL from Phase 9, or the LAN preview URL): confirm "Add to Home Screen" is offered; add it and confirm the home-screen icon and splash use the brand colors, not a generic browser icon.
 3. iOS Safari (via the deployed URL — iOS requires HTTPS for install prompts, so this one needs Phase 9's real Vercel deploy, not LAN): Share → "Add to Home Screen"; confirm the icon is the `apple-touch-icon`, not a screenshot thumbnail.
 4. Turn off wifi/data with the app already open: confirm the app shell still loads (even though task data won't load without a connection — that's expected, per the caching note in Step 2).

@@ -1,6 +1,6 @@
 # Phase 5: Drag Reorder
 
-> Depends on: Phase 4 (done/drop with `layout` animation working). Read `docs/plans/reflow/00-overview.md`, especially the locked constraint: mobile reordering must be true long-press drag, never up/down buttons.
+> Depends on: Phase 4 and [04b-design-system-revision.md](04b-design-system-revision.md) (done/drop with `layout` animation working, on the revised rail+column layout and ink-violet/coral tokens). Read `docs/plans/reflow/00-overview.md`, especially the locked constraint: mobile reordering must be true long-press drag, never up/down buttons.
 
 **Goal of this phase:** manually drag any row to a new position, on both mouse and touch, with ranks renumbered and persisted once the drag ends. This is also the last piece `06-compare-duel.md` needs — the reflow spring animation this phase wires up is reused, unchanged, for compare-insertion.
 
@@ -102,6 +102,8 @@ git commit -m "feat: local reorder + persisted commit"
 
 ## Task 3: Drag-enabled `TaskRow` and `TaskList`
 
+> **Builds on [04b-design-system-revision.md](04b-design-system-revision.md), not on this phase's original pre-revision markup.** By the time this phase is implemented, `TaskRow`/`TaskList` already use the className-based responsive structure from 04b's Task 3 (hairline list desktop / card list mobile, ink-violet/coral tokens) instead of the inline `style` objects and petrol/sand/silt tokens this file originally specified. The code below reflects that — swap in `Reorder.Item`/`Reorder.Group` and the drag handlers while keeping 04b's `className`s and CSS, not the other way around.
+
 **Interfaces:**
 - `TaskList` consumes (added props): `onReorder: (newOrder: Task[]) => void`, `onReorderCommit: () => void`.
 - `TaskRow` consumes (added props): same two, passed through, plus renders as a `Reorder.Item` instead of a plain `div`.
@@ -133,51 +135,19 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowPr
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '14px 18px',
-        borderRadius: 14,
-        background: 'var(--sand)',
-        color: 'var(--graphite)',
-        fontFamily: 'var(--font-body)',
-        touchAction: 'pan-y',
-      }}
+      className="task-row"
+      style={{ touchAction: 'pan-y' }}
     >
-      <button
-        aria-label="mark settled"
-        onClick={() => onComplete(task.id)}
-        style={{
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          border: `1.75px solid var(--stone)`,
-          background: 'transparent',
-          flexShrink: 0,
-          cursor: 'pointer',
-        }}
-      />
-      <span style={{ flex: 1 }}>{task.title}</span>
-      <button
-        aria-label="let it go"
-        onClick={() => onDrop(task.id)}
-        style={{
-          border: 'none',
-          background: 'transparent',
-          color: 'var(--silt)',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-body)',
-        }}
-      >
-        ×
-      </button>
+      <span className="rank" aria-hidden="true" />
+      <button aria-label="mark settled" onClick={() => onComplete(task.id)} className="check" />
+      <span className="title">{task.title}</span>
+      <button aria-label="let it go" onClick={() => onDrop(task.id)} className="close">×</button>
     </Reorder.Item>
   );
 }
 ```
 
-`touchAction: 'pan-y'` lets an ordinary vertical scroll pass through to the page during the pre-long-press window, instead of the browser treating every touch on a row as a potential drag.
+`className="task-row"` reuses 04b's existing responsive CSS unchanged — only the wrapping element (`Reorder.Item` instead of `div`) and the drag-related props are new. `touchAction: 'pan-y'` (kept as an inline style since it's JS-driven behavior, not a design token) lets an ordinary vertical scroll pass through to the page during the pre-long-press window, instead of the browser treating every touch on a row as a potential drag.
 
 - [ ] **Step 2: Modify `src/components/TaskList.tsx`**
 
@@ -196,21 +166,11 @@ interface TaskListProps {
 
 export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit }: TaskListProps) {
   if (tasks.length === 0) {
-    return (
-      <p style={{ color: 'var(--stone)', fontFamily: 'var(--font-body)', padding: 18 }}>
-        nothing on the list yet — add your first task below.
-      </p>
-    );
+    return <p className="empty-state">nothing on the list yet — tap + to add your first task.</p>;
   }
 
   return (
-    <Reorder.Group
-      as="div"
-      axis="y"
-      values={tasks}
-      onReorder={onReorder}
-      style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 18, paddingBottom: 96 }}
-    >
+    <Reorder.Group as="div" axis="y" values={tasks} onReorder={onReorder} className="task-list">
       <AnimatePresence>
         {tasks.map((task) => (
           <TaskRow
@@ -227,43 +187,61 @@ export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit
 }
 ```
 
+Reuses 04b's `.task-list`/`.empty-state` classes unchanged — no new CSS needed for this step.
+
 `Reorder.Item` (used inside `TaskRow`) is itself a `motion` component with built-in `layout` animation and `exit` support, so it slots into the existing `AnimatePresence` from Phase 4 without changes to the done/drop animation.
 
-- [ ] **Step 3: Modify `src/pages/Today.tsx`** to pass the new props through
+- [ ] **Step 3: Modify `src/pages/Today.tsx`** to pass the new reorder props through
+
+`Today.tsx` already has the rail+header shell and `AddTaskFab` from 04b — this step only adds `onReorder`/`onReorderCommit` to the existing `<TaskList>` call, nothing else in the file changes:
 
 ```tsx
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import { TaskList } from '../components/TaskList';
-import { AddBar } from '../components/AddBar';
+import { AddTaskFab } from '../components/AddTaskFab';
 
 export function Today() {
-  const { tasks, loading, addTask, completeTask, dropTask, reorderTasks, commitReorder } = useTasks();
+  const { tasks, loading, completeTask, dropTask, reorderTasks, commitReorder } = useTasks();
   const { signOut } = useAuth();
 
   if (loading) return null;
 
+  const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
   return (
-    <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px' }}>
-        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--petrol)' }}>
-          reflow
-        </span>
-        <button
-          onClick={signOut}
-          style={{ background: 'none', border: 'none', color: 'var(--stone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
-        >
-          sign out
-        </button>
+    <div className="today-shell">
+      <aside className="today-rail">
+        <span className="wordmark">reflow</span>
+        <div className="day-meta">
+          <span className="date">{today.toLowerCase()}</span>
+          <span className="count">{tasks.length} today</span>
+        </div>
+        <div className="rail-spacer" />
+        <button className="rail-action">start my day</button>
+        <button className="rail-signout" onClick={signOut}>sign out</button>
+      </aside>
+
+      <header className="today-header-mobile">
+        <span className="wordmark">reflow</span>
+        <div className="header-right">
+          <span className="count-chip">{tasks.length} today</span>
+        </div>
       </header>
-      <TaskList
-        tasks={tasks}
-        onComplete={completeTask}
-        onDrop={dropTask}
-        onReorder={reorderTasks}
-        onReorderCommit={commitReorder}
-      />
-      <AddBar onAdd={addTask} />
+
+      <main className="today-main">
+        <h1 className="list-heading">today</h1>
+        <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
+        <TaskList
+          tasks={tasks}
+          onComplete={completeTask}
+          onDrop={dropTask}
+          onReorder={reorderTasks}
+          onReorderCommit={commitReorder}
+        />
+      </main>
+
+      <AddTaskFab />
     </div>
   );
 }

@@ -35,7 +35,7 @@ The `writing-plans` skill this was generated with defaults to strict TDD (failin
 
 These apply to every phase; don't re-derive them per task.
 
-- **Brand system is locked** — see `branding.md` at the project root. Petrol/paper/amber palette, lowercase wordmark, amber used *only* at decision moments (the compare duel, the task being slotted, the single next action) — never on chrome, buttons, headers, badges. No red/green for compare states. No gradients, shadows, or glow on the logo mark.
+- **Brand system is locked** — see `branding.md` at the project root. As of [04b-design-system-revision.md](04b-design-system-revision.md): ink violet/paper/signal coral palette (revised from an earlier petrol/paper/amber direction — see `branding.md` §2), lowercase wordmark, coral used *only* at decision moments (the compare duel, the task being slotted, the single next action) — never on chrome, buttons, headers, badges. No red/green for compare states. No gradients, shadows, or glow on the logo mark.
 - **Product mechanics are locked** — see `PRODUCT.md` and `idea.md`. Swipe = binary decisions only (keep/drop, urgency compare). Drag = reordering only. These two vocabularies never blur.
 - **Explicitly undecided, do not invent mid-build** (flagged in `PRODUCT.md`, resolved in [11-open-decisions.md](11-open-decisions.md) before the affected phase, not silently guessed): task content model beyond title, exact "done" visual treatment, and three compare-mechanic edge cases (top/bottom placement confirmation, cancel/skip mid-compare, tie/"similar" option). Phases below implement the simplest defensible behavior for each and mark it `[OPEN DECISION]` in place — swap it out once 11-open-decisions.md is resolved.
 - **Platform:** web only (no native apps), multi-device (phone + laptop), must sync, installable as a PWA (Phase 10).
@@ -70,6 +70,7 @@ Each file is self-contained: open it in a fresh session, it has everything neede
 2. [02-data-layer.md](02-data-layer.md) — `tasks` table, RLS, ranking algorithm + tests, typed data-access functions
 3. [03-ranked-list-ui.md](03-ranked-list-ui.md) — quick-add bar + read-only ranked list, styled to the brand
 4. [04-done-and-drop.md](04-done-and-drop.md) — mark done, settle/fade-out animation
+4b. [04b-design-system-revision.md](04b-design-system-revision.md) — **not in the original plan**, inserted mid-build: revises the color palette (petrol/amber → ink violet/signal coral, see the revised `branding.md` §2) and the structural layout (rail+column desktop `Today`, responsive task rows, floating add button + modal replacing the persistent bottom bar) for every screen built so far, and records the authoritative compare-duel/morning-flow layout spec Phases 6 and 7 must build against instead of their own files' original code samples
 5. [05-drag-reorder.md](05-drag-reorder.md) — manual drag-to-reorder (mouse + true touch drag), rank renumbering
 6. [06-compare-duel.md](06-compare-duel.md) — the binary-search compare mechanic, inline duel UI, reflow animation
 7. [07-morning-flow.md](07-morning-flow.md) — leftover triage (swipe keep/drop), brain dump, drag-to-merge
