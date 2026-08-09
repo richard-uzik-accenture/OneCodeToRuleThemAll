@@ -19,11 +19,11 @@ Mouse users can start a drag immediately (there's no scroll-gesture ambiguity wi
 **Interfaces:**
 - Produces: `useLongPressDrag(): { dragControls: DragControls, onPointerDown, onPointerMove, onPointerUp, onPointerCancel }`, consumed by `TaskRow.tsx`.
 
-- [ ] **Step 1: Write `src/hooks/useLongPressDrag.ts`**
+- [x] **Step 1: Write `src/hooks/useLongPressDrag.ts`**
 
 ```ts
 import { useRef } from 'react';
-import { useDragControls, type PointerEvent as MotionPointerEvent } from 'framer-motion';
+import { useDragControls } from 'framer-motion';
 
 const LONG_PRESS_MS = 350;
 const MOVE_CANCEL_THRESHOLD_PX = 10;
@@ -43,12 +43,12 @@ export function useLongPressDrag() {
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.pointerType === 'mouse') {
-      dragControls.start(e as unknown as MotionPointerEvent);
+      dragControls.start(e);
       return;
     }
     startPointRef.current = { x: e.clientX, y: e.clientY };
     timerRef.current = window.setTimeout(() => {
-      dragControls.start(e as unknown as MotionPointerEvent);
+      dragControls.start(e);
       timerRef.current = null;
     }, LONG_PRESS_MS);
   }
@@ -66,7 +66,9 @@ export function useLongPressDrag() {
 
 On mouse, drag starts on pointer-down with no delay — the long press is specifically a touch affordance to disambiguate from scrolling, not a universal delay.
 
-- [ ] **Step 2: Commit**
+> **Deviation from the original sample:** the installed `framer-motion` (13.0.0) doesn't export a `PointerEvent` type — `DragControls.start()` takes `React.PointerEvent | PointerEvent` directly, so the cast through a framer-motion-specific type in earlier drafts of this file was removed. The code above is what's actually on disk.
+
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useLongPressDrag.ts
@@ -78,7 +80,7 @@ git commit -m "feat: long-press-to-drag hook for touch reordering"
 **Interfaces:**
 - Produces (added to the existing hook — `tasks`, `loading`, `addTask`, `completeTask`, `dropTask`, `reload` are unchanged): `reorderTasks: (newOrder: Task[]) => void` (synchronous, local-only — called on every drag-move for a responsive feel), `commitReorder: () => Promise<void>` (persists the current order's ranks — called once, on drag end).
 
-- [ ] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
+- [x] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
 
 ```ts
   function reorderTasks(newOrder: Task[]) {
@@ -93,7 +95,7 @@ git commit -m "feat: long-press-to-drag hook for touch reordering"
 
 Update the import to `import { rankBetween, renumber } from '../lib/ranking';` and `import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, type Task } from '../lib/tasks';`, and the return statement to include `reorderTasks, commitReorder`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useTasks.ts
@@ -108,7 +110,7 @@ git commit -m "feat: local reorder + persisted commit"
 - `TaskList` consumes (added props): `onReorder: (newOrder: Task[]) => void`, `onReorderCommit: () => void`.
 - `TaskRow` consumes (added props): same two, passed through, plus renders as a `Reorder.Item` instead of a plain `div`.
 
-- [ ] **Step 1: Modify `src/components/TaskRow.tsx`**
+- [x] **Step 1: Modify `src/components/TaskRow.tsx`**
 
 ```tsx
 import { Reorder } from 'framer-motion';
@@ -149,7 +151,7 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowPr
 
 `className="task-row"` reuses 04b's existing responsive CSS unchanged — only the wrapping element (`Reorder.Item` instead of `div`) and the drag-related props are new. `touchAction: 'pan-y'` (kept as an inline style since it's JS-driven behavior, not a design token) lets an ordinary vertical scroll pass through to the page during the pre-long-press window, instead of the browser treating every touch on a row as a potential drag.
 
-- [ ] **Step 2: Modify `src/components/TaskList.tsx`**
+- [x] **Step 2: Modify `src/components/TaskList.tsx`**
 
 ```tsx
 import { AnimatePresence, Reorder } from 'framer-motion';
@@ -191,7 +193,7 @@ Reuses 04b's `.task-list`/`.empty-state` classes unchanged — no new CSS needed
 
 `Reorder.Item` (used inside `TaskRow`) is itself a `motion` component with built-in `layout` animation and `exit` support, so it slots into the existing `AnimatePresence` from Phase 4 without changes to the done/drop animation.
 
-- [ ] **Step 3: Modify `src/pages/Today.tsx`** to pass the new reorder props through
+- [x] **Step 3: Modify `src/pages/Today.tsx`** to pass the new reorder props through
 
 `Today.tsx` already has the rail+header shell and `AddTaskFab` from 04b — this step only adds `onReorder`/`onReorderCommit` to the existing `<TaskList>` call, nothing else in the file changes:
 
@@ -247,7 +249,7 @@ export function Today() {
 }
 ```
 
-- [ ] **Step 4: Test it yourself**
+- [ ] **Step 4: Test it yourself** — NOT yet verified in a real browser; only automated checks (`tsc --noEmit`, `vitest run`, `vite build`) were run during implementation. Still needs a manual pass:
 
 Run `npm run dev` with at least 4 tasks. On desktop with a mouse:
 1. Press and drag a row — it should lift and follow the cursor immediately (no delay), other rows should smoothly reflow to make space.
@@ -257,7 +259,7 @@ On an actual touch device (or Chrome DevTools device toolbar with touch simulati
 3. A quick tap-and-release on a row does **not** start a drag.
 4. Touching and holding for roughly a third of a second, then dragging, **does** move the row — confirm ordinary scrolling still works when you don't pause first.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/TaskRow.tsx src/components/TaskList.tsx src/pages/Today.tsx
