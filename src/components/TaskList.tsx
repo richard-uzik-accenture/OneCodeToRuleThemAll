@@ -24,7 +24,7 @@ export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit
       onReorder={onReorder}
       className={dimmed ? 'task-list task-list-dimmed' : 'task-list'}
     >
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {tasks.map((task) => (
           <TaskRow
             key={task.id}

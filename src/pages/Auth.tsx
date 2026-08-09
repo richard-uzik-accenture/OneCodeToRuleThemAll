@@ -62,7 +62,7 @@ export function Auth({ onBack }: AuthProps) {
               className="auth-input"
               required
             />
-            {error && <p className="auth-error">{error}</p>}
+            {error && <p className="auth-error" role="alert">{error}</p>}
             <button type="submit" className="auth-submit" disabled={submitting}>
               {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
             </button>

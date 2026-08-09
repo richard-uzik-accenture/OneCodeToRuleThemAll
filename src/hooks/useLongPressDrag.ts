@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDragControls } from 'framer-motion';
 
 const LONG_PRESS_MS = 350;
@@ -6,6 +6,7 @@ const MOVE_CANCEL_THRESHOLD_PX = 10;
 
 export function useLongPressDrag() {
   const dragControls = useDragControls();
+  const [charging, setCharging] = useState(false);
   const timerRef = useRef<number | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -15,6 +16,7 @@ export function useLongPressDrag() {
       timerRef.current = null;
     }
     startPointRef.current = null;
+    setCharging(false);
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -23,9 +25,11 @@ export function useLongPressDrag() {
       return;
     }
     startPointRef.current = { x: e.clientX, y: e.clientY };
+    setCharging(true);
     timerRef.current = window.setTimeout(() => {
       dragControls.start(e);
       timerRef.current = null;
+      setCharging(false);
     }, LONG_PRESS_MS);
   }
 
@@ -36,5 +40,5 @@ export function useLongPressDrag() {
     if (Math.hypot(dx, dy) > MOVE_CANCEL_THRESHOLD_PX) cancel();
   }
 
-  return { dragControls, onPointerDown, onPointerMove, onPointerUp: cancel, onPointerCancel: cancel };
+  return { dragControls, charging, onPointerDown, onPointerMove, onPointerUp: cancel, onPointerCancel: cancel };
 }

@@ -4,16 +4,18 @@ import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, markTri
 import { rankBetween, renumber } from '../lib/ranking';
 import { upsertActiveTask } from '../lib/realtimeMerge';
 import { supabase } from '../lib/supabase';
+import { DEV_MODE, mockTasksApi } from '../lib/devMock';
 
 export function useTasks() {
   const { session } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!session) return;
     setLoading(true);
-    const data = await listActiveTasks();
+    const data = DEV_MODE ? await mockTasksApi.list() : await listActiveTasks();
     setTasks(data);
     setLoading(false);
   }, [session]);
@@ -23,7 +25,7 @@ export function useTasks() {
   }, [reload]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || DEV_MODE) return;
 
     const channel = supabase
       .channel(`tasks-changes-${session.user.id}`)
@@ -46,8 +48,14 @@ export function useTasks() {
     if (!session) return;
     const lastRank = tasks.length > 0 ? tasks[tasks.length - 1].rank : null;
     const rank = rankBetween(lastRank, null);
-    const created = await createTask(session.user.id, title, rank);
-    setTasks((prev) => [...prev, created]);
+    try {
+      const created = DEV_MODE
+        ? await mockTasksApi.create(session.user.id, title, rank)
+        : await createTask(session.user.id, title, rank);
+      setTasks((prev) => [...prev, created]);
+    } catch {
+      setError("couldn't add that task — try again");
+    }
   }
 
   async function insertTaskAtIndex(title: string, index: number) {
@@ -55,22 +63,40 @@ export function useTasks() {
     const before = index > 0 ? tasks[index - 1].rank : null;
     const after = index < tasks.length ? tasks[index].rank : null;
     const rank = rankBetween(before, after);
-    const created = await createTask(session.user.id, title, rank);
-    setTasks((prev) => {
-      const next = [...prev];
-      next.splice(index, 0, created);
-      return next;
-    });
+    try {
+      const created = DEV_MODE
+        ? await mockTasksApi.create(session.user.id, title, rank)
+        : await createTask(session.user.id, title, rank);
+      setTasks((prev) => {
+        const next = [...prev];
+        next.splice(index, 0, created);
+        return next;
+      });
+    } catch {
+      setError("couldn't place that task — try again");
+    }
   }
 
   async function completeTask(id: string) {
-    await updateTaskStatus(id, 'done');
+    const previous = tasks;
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await (DEV_MODE ? mockTasksApi.updateStatus(id, 'done') : updateTaskStatus(id, 'done'));
+    } catch {
+      setTasks(previous);
+      setError("couldn't mark that settled — try again");
+    }
   }
 
   async function dropTask(id: string) {
-    await updateTaskStatus(id, 'dropped');
+    const previous = tasks;
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await (DEV_MODE ? mockTasksApi.updateStatus(id, 'dropped') : updateTaskStatus(id, 'dropped'));
+    } catch {
+      setTasks(previous);
+      setError("couldn't let that go — try again");
+    }
   }
 
   function reorderTasks(newOrder: Task[]) {
@@ -79,14 +105,28 @@ export function useTasks() {
 
   async function commitReorder() {
     const ranks = renumber(tasks.length);
-    await updateTaskRanks(tasks.map((t, i) => ({ id: t.id, rank: ranks[i] })));
+    const updates = tasks.map((t, i) => ({ id: t.id, rank: ranks[i] }));
+    try {
+      await (DEV_MODE ? mockTasksApi.updateRanks(updates) : updateTaskRanks(updates));
+    } catch {
+      setError("couldn't save the new order — try again");
+    }
   }
 
   async function keepLeftover(id: string) {
     const today = new Date().toISOString().slice(0, 10);
-    await markTriaged(id);
+    const previous = tasks;
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, last_triaged_on: today } : t)));
+    try {
+      await (DEV_MODE ? mockTasksApi.markTriaged(id) : markTriaged(id));
+    } catch {
+      setTasks(previous);
+      setError("couldn't keep that task — try again");
+    }
   }
 
-  return { tasks, loading, addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload };
+  return {
+    tasks, loading, error, dismissError: () => setError(null),
+    addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload,
+  };
 }

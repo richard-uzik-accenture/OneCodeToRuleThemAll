@@ -1,4 +1,5 @@
-import { motion, type PanInfo } from 'framer-motion';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
+import { useState } from 'react';
 import type { Task } from '../lib/tasks';
 
 interface CompareDuelProps {
@@ -9,11 +10,20 @@ interface CompareDuelProps {
 }
 
 const SWIPE_THRESHOLD_PX = 80;
+const EXIT_DISTANCE_PX = 420;
+const EXIT_DURATION_S = 0.175;
 
 export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: CompareDuelProps) {
+  const [exitDirection, setExitDirection] = useState<1 | -1 | null>(null);
+
+  function commit(newTaskWon: boolean) {
+    setExitDirection(newTaskWon ? 1 : -1);
+    window.setTimeout(() => onDecide(newTaskWon), EXIT_DURATION_S * 1000);
+  }
+
   function handleDragEnd(_event: unknown, info: PanInfo) {
-    if (info.offset.x > SWIPE_THRESHOLD_PX) onDecide(true);
-    else if (info.offset.x < -SWIPE_THRESHOLD_PX) onDecide(false);
+    if (info.offset.x > SWIPE_THRESHOLD_PX) commit(true);
+    else if (info.offset.x < -SWIPE_THRESHOLD_PX) commit(false);
   }
 
   return (
@@ -26,21 +36,42 @@ export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: Com
         </h2>
       </div>
 
-      <motion.div
-        className="swipe-card"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.6}
-        onDragEnd={handleDragEnd}
-        transition={{ duration: 0.175 }}
-      >
-        <div className="label">just added — drag me</div>
-        <div className="title">{newTaskTitle}</div>
-      </motion.div>
+      <div className="swipe-card-slot">
+        <AnimatePresence>
+          {exitDirection === null && (
+            <motion.div
+              key={candidate.id}
+              className="swipe-card"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.6}
+              onDragEnd={handleDragEnd}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              whileDrag={{ scale: 1.03, boxShadow: '0 24px 44px -16px rgba(23, 19, 53, 0.3)' }}
+              transition={{ duration: EXIT_DURATION_S }}
+            >
+              <div className="label">just added — drag me</div>
+              <div className="title">{newTaskTitle}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {exitDirection !== null && (
+          <motion.div
+            className="swipe-card swipe-card-committed"
+            initial={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 0, x: exitDirection * EXIT_DISTANCE_PX }}
+            transition={{ duration: EXIT_DURATION_S, ease: 'easeIn' }}
+          >
+            <div className="label">just added — drag me</div>
+            <div className="title">{newTaskTitle}</div>
+          </motion.div>
+        )}
+      </div>
 
       <div className="swipe-hints">
-        <button className="swipe-hint less" onClick={() => onDecide(false)}>← no, later</button>
-        <button className="swipe-hint more" onClick={() => onDecide(true)}>yes, sooner →</button>
+        <button className="swipe-hint less" onClick={() => commit(false)}>← no, later</button>
+        <button className="swipe-hint more" onClick={() => commit(true)}>yes, sooner →</button>
       </div>
 
       <div className="duel-progress">

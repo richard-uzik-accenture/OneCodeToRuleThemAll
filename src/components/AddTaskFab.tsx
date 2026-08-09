@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Plus } from './icons/Plus';
 
 interface AddTaskFabProps {
   onAdd: (title: string) => void;
@@ -33,7 +34,9 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
 
   return (
     <>
-      <button aria-label="add task" className="fab" onClick={() => setOpen(true)} disabled={disabled}>+</button>
+      <button aria-label="add task" className="fab" onClick={() => setOpen(true)} disabled={disabled}>
+        <Plus width={24} height={24} />
+      </button>
       {open && (
         <div className="modal-scrim" onClick={() => setOpen(false)}>
           <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>

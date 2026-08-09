@@ -7,11 +7,14 @@ interface UseCompareInsertionArgs {
   onInsert: (title: string, index: number) => Promise<void>;
 }
 
+const PLACED_CONFIRMATION_MS = 900;
+
 export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs) {
   const [pendingTitle, setPendingTitle] = useState<string | null>(null);
   const [state, setState] = useState<CompareState | null>(null);
   const [totalSteps, setTotalSteps] = useState(0);
   const [stepsDone, setStepsDone] = useState(0);
+  const [placedAt, setPlacedAt] = useState<{ title: string; index: number } | null>(null);
 
   function begin(title: string) {
     const initial = startCompare(tasks.length);
@@ -31,8 +34,10 @@ export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs
     setStepsDone((n) => n + 1);
     if ('done' in result) {
       onInsert(pendingTitle, result.insertIndex);
+      setPlacedAt({ title: pendingTitle, index: result.insertIndex });
       setPendingTitle(null);
       setState(null);
+      window.setTimeout(() => setPlacedAt(null), PLACED_CONFIRMATION_MS);
     } else {
       setState(result);
     }
@@ -44,6 +49,7 @@ export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs
     pendingTitle,
     candidate,
     active: pendingTitle !== null,
+    placedAt,
     progress: { done: stepsDone, total: totalSteps },
     begin,
     decide,

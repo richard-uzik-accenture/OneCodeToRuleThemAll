@@ -25,6 +25,7 @@ export function LeftoverCard({ task, remaining, onResolve }: LeftoverCardProps) 
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.6}
           onDragEnd={handleDragEnd}
+          whileDrag={{ scale: 1.03, boxShadow: '0 24px 44px -16px rgba(23, 19, 53, 0.3)' }}
         >
           {task.title}
         </motion.div>
