@@ -28,6 +28,19 @@ export function useTasks() {
     setTasks((prev) => [...prev, created]);
   }
 
+  async function insertTaskAtIndex(title: string, index: number) {
+    if (!session) return;
+    const before = index > 0 ? tasks[index - 1].rank : null;
+    const after = index < tasks.length ? tasks[index].rank : null;
+    const rank = rankBetween(before, after);
+    const created = await createTask(session.user.id, title, rank);
+    setTasks((prev) => {
+      const next = [...prev];
+      next.splice(index, 0, created);
+      return next;
+    });
+  }
+
   async function completeTask(id: string) {
     await updateTaskStatus(id, 'done');
     setTasks((prev) => prev.filter((t) => t.id !== id));
@@ -47,5 +60,5 @@ export function useTasks() {
     await updateTaskRanks(tasks.map((t, i) => ({ id: t.id, rank: ranks[i] })));
   }
 
-  return { tasks, loading, addTask, completeTask, dropTask, reorderTasks, commitReorder, reload };
+  return { tasks, loading, addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, reload };
 }

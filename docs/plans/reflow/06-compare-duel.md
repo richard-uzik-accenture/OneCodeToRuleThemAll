@@ -27,7 +27,7 @@ This is the highest-risk logic in the whole app (idea.md flags several of its ed
 
 The algorithm is a standard binary insertion search over index positions `[0, length]`. `low`/`high` bound the still-possible insertion index (as a half-open range `[low, high)`); `candidateIndex` (the midpoint) is the task shown to the user. `newTaskWon: true` means the new task is **more urgent** than the candidate, which rules out every insertion index after the candidate.
 
-- [ ] **Step 1: Write the failing tests** — `src/lib/compare.test.ts`
+- [x] **Step 1: Write the failing tests** — `src/lib/compare.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -87,12 +87,12 @@ describe('narrow', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module './compare'`.
 
-- [ ] **Step 3: Write the implementation** — `src/lib/compare.ts`
+- [x] **Step 3: Write the implementation** — `src/lib/compare.ts`
 
 ```ts
 export interface CompareState {
@@ -123,12 +123,12 @@ export function narrow(state: CompareState, newTaskWon: boolean): CompareResult 
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS, all `compare.ts` tests plus the existing `ranking.ts` tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/compare.ts src/lib/compare.test.ts
@@ -140,7 +140,7 @@ git commit -m "feat: binary-search compare algorithm with tests"
 **Interfaces:**
 - Produces (added to the existing hook — every function from Phases 3–5 is unchanged): `insertTaskAtIndex: (title: string, index: number) => Promise<void>`.
 
-- [ ] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
+- [x] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
 
 ```ts
   async function insertTaskAtIndex(title: string, index: number) {
@@ -159,7 +159,7 @@ git commit -m "feat: binary-search compare algorithm with tests"
 
 Add `insertTaskAtIndex` to the returned object. Note: `addTask` (plain append, from Phase 3) is **kept, not replaced** — `07-morning-flow.md`'s brain-dump phase needs append-only capture with no compare mechanic, per idea.md ("capture only, no ranking" during brain dump).
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useTasks.ts
