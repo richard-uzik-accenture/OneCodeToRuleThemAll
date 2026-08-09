@@ -15,7 +15,7 @@
 - Consumes: `getLeftoverTasks` from `src/lib/triage.ts` (Phase 7).
 - Produces: `{ hasLeftovers: boolean, dismissed: boolean, dismiss: () => void }`, consumed by `Today.tsx`.
 
-- [ ] **Step 1: Write `src/hooks/useRolloverPrompt.ts`**
+- [x] **Step 1: Write `src/hooks/useRolloverPrompt.ts`**
 
 ```ts
 import { useMemo, useState } from 'react';
@@ -33,7 +33,7 @@ export function useRolloverPrompt(tasks: Task[]) {
 
 `dismissed` is deliberately local, in-memory state — it resets on every reload. That's the point: a genuine new day (or just reopening the app tomorrow) should prompt again, but dismissing the banner shouldn't need a persisted "don't ask me again" flag. Recomputing `hasLeftovers` from `tasks` on every render (rather than once at mount) means finishing the morning flow makes the banner disappear immediately, without a page reload.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useRolloverPrompt.ts
@@ -44,7 +44,7 @@ git commit -m "feat: rollover prompt detection hook"
 
 By this point `Today.tsx` (from 04b, extended in Phase 7) has a desktop rail with a working `rail-action` "start my day" button, and a mobile compact header (`today-header-mobile`) with no trigger at all. This task adds the banner **above `<main>`, inside `today-main` on mobile / below the rail's fixed controls on desktop** — it doesn't replace the rail button (which stays exactly as Phase 7 left it), it adds a second, more prominent entry point that only appears when there's something to triage.
 
-- [ ] **Step 1: Modify `src/pages/Today.tsx`**
+- [x] **Step 1: Modify `src/pages/Today.tsx`**
 
 Add the import and hook call:
 
@@ -110,7 +110,7 @@ Placing the banner inside `today-main` (rather than `position: fixed`, which the
 
 This closes the mobile trigger gap from `07-morning-flow.md`: on narrow viewports, the banner (when leftovers exist) is now the only way to start the flow, since the compact mobile header has no button of its own. **Zero-leftover mobile still has no manual trigger** — if you want one regardless of leftover state, add a small icon button to `.today-header-mobile` calling `morning.start`; this phase doesn't add one, since the rail's plain button already covers "no leftovers, but I want to re-triage/brain-dump anyway" on desktop, and mobile's use case (open app mid-interruption, add one task, close it) rarely needs that path — revisit if it turns out you want it in practice.
 
-- [ ] **Step 2: Test it yourself**
+- [x] **Step 2: Test it yourself**
 
 Simulate a leftover again (Supabase Table Editor, set an active task's `last_triaged_on` to yesterday), then:
 1. Reload the app — confirm a `mist`-colored banner appears above the list reading "still open from before — start my day?" in violet, with a "not now" dismiss button in dusk grey.
@@ -119,7 +119,7 @@ Simulate a leftover again (Supabase Table Editor, set an active task's `last_tri
 4. This time click the banner itself, complete the morning flow (Phase 7's steps) — confirm that once you return to the normal Today view, the banner is gone (no leftovers remain), without needing a reload.
 5. At a narrow (< 900px) viewport with a simulated leftover, confirm the banner is the only visible way to start the flow (no rail is present at this width).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/pages/Today.tsx src/styles/global.css

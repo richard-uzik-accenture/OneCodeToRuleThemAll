@@ -23,7 +23,7 @@
 
 A task is a leftover once its `last_triaged_on` is strictly before today — it was active yesterday (or earlier) and was never confirmed today.
 
-- [ ] **Step 1: Write the failing tests** — `src/lib/triage.test.ts`
+- [x] **Step 1: Write the failing tests** — `src/lib/triage.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -72,12 +72,12 @@ describe('getLeftoverTasks', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module './triage'`.
 
-- [ ] **Step 3: Write the implementation** — `src/lib/triage.ts`
+- [x] **Step 3: Write the implementation** — `src/lib/triage.ts`
 
 ```ts
 import type { Task } from './tasks';
@@ -95,12 +95,12 @@ export function getLeftoverTasks(tasks: Task[], today: string = todayISO()): Tas
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS, all tests including `ranking.ts` and `compare.ts` from earlier phases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/triage.ts src/lib/triage.test.ts
@@ -112,7 +112,7 @@ git commit -m "feat: leftover detection with tests"
 **Interfaces:**
 - Produces (added to the existing hook — nothing from Phases 3–6 changes): `keepLeftover: (id: string) => Promise<void>`.
 
-- [ ] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
+- [x] **Step 1: Modify `src/hooks/useTasks.ts`** — add:
 
 ```ts
   async function keepLeftover(id: string) {
@@ -126,7 +126,7 @@ Update the import to include `markTriaged`: `import { listActiveTasks, createTas
 
 Dropping a leftover reuses the existing `dropTask` from Phase 4 — no new function needed for that side of the decision.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useTasks.ts
@@ -139,7 +139,7 @@ git commit -m "feat: keep-leftover action"
 - Consumes: `getLeftoverTasks` from `src/lib/triage.ts`.
 - Produces: `{ step: 'idle' | 'leftover' | 'braindump' | 'merge', active: boolean, currentLeftover: Task | null, remaining: number, start: () => void, resolveLeftover: (keep: boolean) => Promise<void>, addBrainDumpTask: (title: string) => Promise<void>, finishBrainDump: () => void, finishMerge: () => void, close: () => void }`, consumed by `Today.tsx`.
 
-- [ ] **Step 1: Write `src/hooks/useMorningFlow.ts`**
+- [x] **Step 1: Write `src/hooks/useMorningFlow.ts`**
 
 ```ts
 import { useState } from 'react';
@@ -203,7 +203,7 @@ export function useMorningFlow({ tasks, keepLeftover, dropTask, addTask }: UseMo
 
 Starting directly on `'braindump'` when there are zero leftovers avoids showing an empty triage screen — the flow always has *something* to do (there's always a brain-dump step), so `active` alone is enough to decide whether to render the full-screen flow. `close` and `finishMerge` do the same thing today (both just reset to `'idle'`) — kept as two named functions rather than one, because "finished the flow normally" and "backed out early via the header's close button" are different user actions that happen to share an implementation; a later phase adding flow-abandonment analytics or a confirmation dialog on early exit has a single function to change (`close`) without touching the normal completion path.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/hooks/useMorningFlow.ts
@@ -214,7 +214,7 @@ git commit -m "feat: morning flow orchestration hook"
 
 Reuses the same `drag="x"` swipe pattern as `CompareDuel.tsx` (Phase 6), applied to a single full card instead of an inline duel — swipe right = keep, left = drop, with tap buttons as the non-swipe alternative. Copy follows branding.md's tone table: "still open," not "overdue."
 
-- [ ] **Step 1: Write `src/components/LeftoverCard.tsx`**
+- [x] **Step 1: Write `src/components/LeftoverCard.tsx`**
 
 ```tsx
 import { motion, type PanInfo } from 'framer-motion';
@@ -279,7 +279,7 @@ export function LeftoverCard({ task, remaining, onResolve }: LeftoverCardProps) 
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/LeftoverCard.tsx
@@ -288,7 +288,7 @@ git commit -m "feat: leftover triage card"
 
 ## Task 5: `BrainDump`
 
-- [ ] **Step 1: Write `src/components/BrainDump.tsx`**
+- [x] **Step 1: Write `src/components/BrainDump.tsx`**
 
 ```tsx
 import { useState, type FormEvent } from 'react';
@@ -364,7 +364,7 @@ export function BrainDump({ onAdd, onDone }: BrainDumpProps) {
 
 `entries` here is a local, display-only echo of what's been typed (so you can see your brain-dump list as you build it) — the actual persisted tasks are created immediately on each `onAdd` call via the real `addTask`, appended at the current bottom of the list, same as any other append.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/BrainDump.tsx
@@ -378,7 +378,7 @@ git commit -m "feat: brain-dump capture step"
 **Interfaces:**
 - `MorningFlow` consumes: `step`, `currentLeftover`, `remaining`, `tasks`, `keptCount`, `onResolveLeftover`, `onAddBrainDumpTask`, `onFinishBrainDump`, `onComplete`, `onDrop`, `onReorder`, `onReorderCommit`, `onFinishMerge`, `onClose`.
 
-- [ ] **Step 1: Write `src/components/MorningFlow.tsx`**
+- [x] **Step 1: Write `src/components/MorningFlow.tsx`**
 
 ```tsx
 import type { Task } from '../lib/tasks';
@@ -449,7 +449,7 @@ export function MorningFlow(props: MorningFlowProps) {
 
 `keptCount` (how many of `tasks` came from yesterday's kept leftovers, always the first N by construction — Task 3's `useMorningFlow` puts kept tasks at the top before appending brain-dump tasks) drives whether the "kept from yesterday" label renders at all; if every leftover was dropped, only "new today" applies and the label is redundant. Compute `keptCount` in `Today.tsx` (Step 3 below) rather than inside this component, since it's simple state already available where `useMorningFlow` is called.
 
-- [ ] **Step 2: Add the flow CSS** — append to `src/styles/global.css`:
+- [x] **Step 2: Add the flow CSS** — append to `src/styles/global.css`:
 
 ```css
 .flow-shell {
@@ -519,7 +519,7 @@ Desktop centers the same three-step content into a fixed 460px column rather tha
 
 **Merge row color coding** (04b): `TaskRow`/`TaskList` don't need new props for this — apply it via a CSS attribute selector keyed on task recency isn't available without extra data, so this is deferred to a small follow-up: add an optional `variant?: 'kept' | 'new'` prop to `TaskRow` if you want the colored left-edge from the 04b comp; the plan ships without it in Step 1 above to avoid overloading `TaskRow`'s props for one screen. Revisit in a polish pass if the visual distinction matters more once you're using the flow daily — tracked here rather than silently dropped.
 
-- [ ] **Step 3: Modify `src/pages/Today.tsx`** to add the trigger and render the flow
+- [x] **Step 3: Modify `src/pages/Today.tsx`** to add the trigger and render the flow
 
 Only the additions on top of Phase 6's version are shown:
 
@@ -615,7 +615,7 @@ export function Today() {
 
 The rail's existing `rail-action` button (04b, previously a non-functional placeholder reading "start my day") now wires to `morning.start` — no new UI element needed on desktop. Mobile doesn't yet have an equivalent trigger in the compact header; Phase 8's rollover-prompt banner is what actually surfaces the control on mobile in practice (per that phase's own plan), so this phase leaves mobile without a manual trigger and relies on Phase 8 to add one — flagged here rather than silently gapped, since a user testing Phase 7 alone on a narrow viewport needs *some* way in: temporarily call `morning.start()` from the browser console, or test this phase primarily at ≥ 900px width, and treat mobile-triggering as complete once Phase 8 lands.
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 First simulate a leftover: in the Supabase Table Editor, pick an existing active task and set its `last_triaged_on` to yesterday's date (e.g. if today is `2026-08-09`, set it to `2026-08-08`).
 
@@ -630,7 +630,7 @@ Run `npm run dev` at ≥ 900px width, sign in, click "start my day" in the left 
 8. Refresh — the order and every status change from this flow persisted.
 9. Click "close" (top right of the flow) partway through — confirm it exits back to the normal Today view without forcing you to finish (per Phase 8's "never force-navigate" principle, applied here too even though Phase 8 hasn't been built yet).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/MorningFlow.tsx src/pages/Today.tsx src/styles/global.css
