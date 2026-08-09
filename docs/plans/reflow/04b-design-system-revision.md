@@ -28,7 +28,7 @@ Both are addressed below as concrete specs, not prose — later phases implement
 
 **Interfaces:** No change to token *names* consumers already use (`var(--petrol)`, `var(--paper)`, etc. keep working) — only their values change, plus new tokens are added. This means no component `.tsx` file needs an edit for color alone; only `tokens.css` changes for this task.
 
-- [ ] **Step 1: Modify `src/styles/tokens.css`**
+- [x] **Step 1: Modify `src/styles/tokens.css`**
 
 Replace the `:root` block's color values with the new palette from `branding.md` §2:
 
@@ -60,7 +60,7 @@ Replace the `:root` block's color values with the new palette from `branding.md`
 }
 ```
 
-- [ ] **Step 2: Rename the variables to match the new names** (do this rather than leaving `--petrol`/`--signal-amber` as misleading aliases for violet/coral — a future contributor grepping for "amber" to find the decision-accent color should find it):
+- [x] **Step 2: Rename the variables to match the new names** (do this rather than leaving `--petrol`/`--signal-amber` as misleading aliases for violet/coral — a future contributor grepping for "amber" to find the decision-accent color should find it):
 
 ```css
 :root {
@@ -92,7 +92,7 @@ Replace the `:root` block's color values with the new palette from `branding.md`
 
 Then do a project-wide find/replace across every `.tsx` file under `src/`: `--petrol-ink` → `--ink-violet`, `--petrol` → `--violet` (careful: do this replacement *before* `--petrol-ink`, or do a whole-word replace, since `--petrol` is a substring of `--petrol-ink`), `--shallow` → `--violet-soft`, `--signal-amber` → `--signal-coral`, `--amber-wash` → `--coral-wash`, `--paper` stays `--paper`, `--sand` → `--mist`, `--silt` → `--haze`, `--stone` → `--dusk`, `--graphite` → `--ink`.
 
-- [ ] **Step 3: Modify `src/styles/global.css`** — update the two hardcoded var references (`body`'s `background`/`color`) to the renamed tokens:
+- [x] **Step 3: Modify `src/styles/global.css`** — update the two hardcoded var references (`body`'s `background`/`color`) to the renamed tokens:
 
 ```css
 body {
@@ -102,11 +102,11 @@ body {
 }
 ```
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 Run `npm run dev`, sign in. Confirm every screen (landing, auth, today) now renders in cool violet-on-paper rather than warm petrol-on-cream — no leftover warm-toned elements, no console errors about undefined CSS variables.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/styles src/pages src/components
@@ -119,7 +119,7 @@ git commit -m "feat: revise palette to ink violet + signal coral"
 - `Today.tsx` no longer renders the plain flex header from Phase 3/4 — replaced by a responsive shell: a left rail on wide viewports (≥ 900px), a compact top header on narrow ones.
 - No change to what `Today.tsx` consumes from `useTasks()`/`useAuth()` — this is a pure layout restructure.
 
-- [ ] **Step 1: Modify `src/pages/Today.tsx`** — replace the existing `<header>` + flat body with:
+- [x] **Step 1: Modify `src/pages/Today.tsx`** — replace the existing `<header>` + flat body with:
 
 ```tsx
 import { useTasks } from '../hooks/useTasks';
@@ -169,7 +169,7 @@ export function Today() {
 
 `session` stays imported/used only if a later phase needs it here (Phase 6+ do); if unused after this task, remove the import per the "remove imports your changes made unused" rule.
 
-- [ ] **Step 2: Add the layout CSS** — append to `src/styles/global.css`:
+- [x] **Step 2: Add the layout CSS** — append to `src/styles/global.css`:
 
 ```css
 .today-shell {
@@ -250,7 +250,7 @@ export function Today() {
 
 The mobile "start my day" trigger is intentionally not re-added yet — Phase 7/8 own that control and will place it appropriately once the morning flow exists; this phase only establishes the shell.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/pages/Today.tsx src/styles/global.css
@@ -261,7 +261,7 @@ git commit -m "feat: rail+column desktop layout, compact mobile header"
 
 **Interfaces:** No change to `TaskRowProps`/`TaskListProps` (`task`, `onComplete`, `onDrop`) — this task only restructures the CSS, not the component contracts, so Phase 5's `Reorder.Item` wiring and Phase 4's `AnimatePresence` continue to work unmodified.
 
-- [ ] **Step 1: Modify `src/components/TaskRow.tsx`** — replace the single hardcoded `--sand` card style with responsive classes:
+- [x] **Step 1: Modify `src/components/TaskRow.tsx`** — replace the single hardcoded `--sand` card style with responsive classes:
 
 ```tsx
 import type { Task } from '../lib/tasks';
@@ -286,7 +286,7 @@ export function TaskRow({ task, onComplete, onDrop }: TaskRowProps) {
 
 The `rank` span is a placeholder for Phase 5's actual rank-number display (currently the plan has no rank display at all — this reserves the grid slot; Phase 5 or a later polish task fills in the real ordinal). Leave it empty for now rather than inventing rank-number logic in this presentation-only phase.
 
-- [ ] **Step 2: Add the responsive row CSS** — append to `src/styles/global.css`:
+- [x] **Step 2: Add the responsive row CSS** — append to `src/styles/global.css`:
 
 ```css
 .task-row {
@@ -330,7 +330,7 @@ The `rank` span is a placeholder for Phase 5's actual rank-number display (curre
 }
 ```
 
-- [ ] **Step 3: Modify `src/components/TaskList.tsx`** — remove the inline `style` prop (now handled by CSS classes) and the `paddingBottom: 96` hack (no longer needed without a fixed bottom bar):
+- [x] **Step 3: Modify `src/components/TaskList.tsx`** — remove the inline `style` prop (now handled by CSS classes) and the `paddingBottom: 96` hack (no longer needed without a fixed bottom bar):
 
 ```tsx
 import { AnimatePresence, motion } from 'framer-motion';
@@ -370,11 +370,11 @@ export function TaskList({ tasks, onComplete, onDrop }: TaskListProps) {
 
 Add `.empty-state { color: var(--dusk); font-family: var(--font-body); padding: 18px 0; }` and `.task-list { display: flex; flex-direction: column; }` to `global.css`.
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 Run `npm run dev`. Confirm: on a narrow viewport (< 900px), rows render as rounded cards on a `mist` background with no visible rank number. Resize past 900px (or open desktop dev tools' responsive mode) — rows flatten into a hairline-divided list with a small tabular-mono rank placeholder slot on the left (empty for now) and the identity rail appears on the left of the page.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/TaskRow.tsx src/components/TaskList.tsx src/styles/global.css
@@ -389,9 +389,9 @@ The Phase 3 `AddBar` (always-visible bottom text input + button) is removed enti
 - Produces: `src/components/AddTaskFab.tsx` — no props; owns its own open/close state and calls `addTask` (or `begin`, once Phase 6's compare mechanic exists) internally via `useTasks()`.
 - Deletes: `src/components/AddBar.tsx` and its one remaining import in `Today.tsx` (already removed in Task 2).
 
-- [ ] **Step 1: Delete `src/components/AddBar.tsx`**
+- [x] **Step 1: Delete `src/components/AddBar.tsx`**
 
-- [ ] **Step 2: Write `src/components/AddTaskFab.tsx`**
+- [x] **Step 2: Write `src/components/AddTaskFab.tsx`**
 
 ```tsx
 import { useState, type FormEvent } from 'react';
@@ -441,7 +441,7 @@ export function AddTaskFab() {
 
 **Note for Phase 6 (compare duel):** once `useCompareInsertion`'s `begin` function exists, this component's `addTask(title)` call becomes `begin(title)` instead — Phase 6's plan file should be read alongside this one when that phase is implemented, since it's the same submit handler this component owns.
 
-- [ ] **Step 3: Add the FAB + modal CSS** — append to `src/styles/global.css`:
+- [x] **Step 3: Add the FAB + modal CSS** — append to `src/styles/global.css`:
 
 ```css
 .fab {
@@ -521,11 +521,11 @@ export function AddTaskFab() {
 }
 ```
 
-- [ ] **Step 4: Test it yourself**
+- [x] **Step 4: Test it yourself**
 
 Run `npm run dev`. Confirm: no bottom bar is visible on load; a violet circular "+" sits bottom-right on both narrow and wide viewports. Clicking it opens a centered card with one autofocused input; typing a title and pressing Enter (or clicking "add task") adds the task, closes the modal, and clears the input for next time. Clicking the dimmed background or "cancel" closes without adding.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/AddTaskFab.tsx src/styles/global.css
@@ -537,13 +537,13 @@ git commit -m "feat: floating add button and modal, remove persistent bottom bar
 
 These two screens are explicitly **out of scope for structural redesign** in this pass — they're seen once (or rarely), unlike `Today`, which is opened dozens of times a day. Only their hardcoded color values need updating so nothing on the auth path still shows the old petrol/amber colors.
 
-- [ ] **Step 1: Modify `src/pages/Landing.tsx` and `src/pages/Auth.tsx`** — every inline `style={{ color: 'var(--petrol)', ... }}` etc. already resolves through the renamed CSS variables from Task 1, so **if these files only ever reference the CSS custom properties (not hardcoded hex), no edit is needed here** — confirm by grepping both files for a literal `#` hex value; if none exist, this step is a no-op. If either file has a hardcoded hex (bypassing the token), replace it with the equivalent `var(--...)` token instead of a new hardcoded value.
+- [x] **Step 1: Modify `src/pages/Landing.tsx` and `src/pages/Auth.tsx`** — every inline `style={{ color: 'var(--petrol)', ... }}` etc. already resolves through the renamed CSS variables from Task 1, so **if these files only ever reference the CSS custom properties (not hardcoded hex), no edit is needed here** — confirm by grepping both files for a literal `#` hex value; if none exist, this step is a no-op. If either file has a hardcoded hex (bypassing the token), replace it with the equivalent `var(--...)` token instead of a new hardcoded value.
 
-- [ ] **Step 2: Test it yourself**
+- [x] **Step 2: Test it yourself**
 
 Sign out, view the landing page and auth form. Confirm both now render in violet/paper, not petrol/cream, with no visual regression otherwise.
 
-- [ ] **Step 3: Commit** (only if Step 1 required changes)
+- [x] **Step 3: Commit** (only if Step 1 required changes)
 
 ```bash
 git add src/pages/Landing.tsx src/pages/Auth.tsx
