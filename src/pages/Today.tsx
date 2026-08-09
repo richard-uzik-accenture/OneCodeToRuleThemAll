@@ -1,14 +1,16 @@
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useCompareInsertion } from '../hooks/useCompareInsertion';
+import { useMorningFlow } from '../hooks/useMorningFlow';
 import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
+import { MorningFlow } from '../components/MorningFlow';
 
 export function Today() {
   const {
-    tasks, loading, completeTask, dropTask,
-    reorderTasks, commitReorder, insertTaskAtIndex,
+    tasks, loading, addTask, completeTask, dropTask,
+    reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
   const { signOut } = useAuth();
   const { pendingTitle, candidate, active, progress, begin, decide } = useCompareInsertion({
@@ -16,7 +18,31 @@ export function Today() {
     onInsert: insertTaskAtIndex,
   });
 
+  const morning = useMorningFlow({ tasks, keepLeftover, dropTask, addTask });
+
   if (loading) return null;
+
+  if (morning.active) {
+    const keptCount = tasks.filter((t) => t.last_triaged_on === new Date().toISOString().slice(0, 10)).length;
+    return (
+      <MorningFlow
+        step={morning.step as 'leftover' | 'braindump' | 'merge'}
+        currentLeftover={morning.currentLeftover}
+        remaining={morning.remaining}
+        tasks={tasks}
+        keptCount={keptCount}
+        onResolveLeftover={morning.resolveLeftover}
+        onAddBrainDumpTask={morning.addBrainDumpTask}
+        onFinishBrainDump={morning.finishBrainDump}
+        onComplete={completeTask}
+        onDrop={dropTask}
+        onReorder={reorderTasks}
+        onReorderCommit={commitReorder}
+        onFinishMerge={morning.finishMerge}
+        onClose={morning.close}
+      />
+    );
+  }
 
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -29,7 +55,7 @@ export function Today() {
           <span className="count">{tasks.length} today</span>
         </div>
         <div className="rail-spacer" />
-        <button className="rail-action">start my day</button>
+        <button className="rail-action" onClick={morning.start}>start my day</button>
         <button className="rail-signout" onClick={signOut}>sign out</button>
       </aside>
 
