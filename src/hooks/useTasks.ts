@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, markTriaged, type Task } from '../lib/tasks';
 import { rankBetween, renumber } from '../lib/ranking';
+import { upsertActiveTask } from '../lib/realtimeMerge';
+import { supabase } from '../lib/supabase';
 
 export function useTasks() {
   const { session } = useAuth();
@@ -19,6 +21,26 @@ export function useTasks() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const channel = supabase
+      .channel(`tasks-changes-${session.user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${session.user.id}` },
+        (payload) => {
+          if (payload.eventType === 'DELETE') return; // the app never deletes rows, only changes status
+          setTasks((prev) => upsertActiveTask(prev, payload.new as Task));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session]);
 
   async function addTask(title: string) {
     if (!session) return;
