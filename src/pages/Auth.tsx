@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { Mark } from '../components/icons/Mark';
+import { ChevronLeft } from '../components/icons/ChevronLeft';
 
 interface AuthProps {
   onBack: () => void;
@@ -32,46 +34,45 @@ export function Auth({ onBack }: AuthProps) {
   }
 
   return (
-    <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, width: 280 }}>
-        <button
-          type="button"
-          onClick={onBack}
-          style={{ justifySelf: 'start', background: 'none', border: 'none', color: 'var(--dusk)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-        >
-          ← back
-        </button>
-        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)', fontVariantLigatures: 'common-ligatures', fontFeatureSettings: '"liga" 1' }}>
-          reflow
-        </h1>
-        <input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="username"
-          required
-        />
-        <input
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-          required
-        />
-        {error && <p style={{ color: 'var(--dusk)' }}>{error}</p>}
-        <button type="submit" disabled={submitting}>
-          {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-          style={{ background: 'none', border: 'none', color: 'var(--dusk)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-        >
-          {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
-        </button>
-      </form>
+    <div className="auth-shell">
+      <button type="button" onClick={onBack} className="auth-back" aria-label="back">
+        <ChevronLeft />
+      </button>
+      <div className="auth-frame">
+        <div className="auth-card">
+          <Mark className="auth-mark" aria-hidden="true" />
+          <h1 className="auth-wordmark">reflow</h1>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <input
+              type="email"
+              placeholder="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              className="auth-input"
+              required
+            />
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+              className="auth-input"
+              required
+            />
+            {error && <p className="auth-error">{error}</p>}
+            <button type="submit" className="auth-submit" disabled={submitting}>
+              {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
+            </button>
+          </form>
+
+          <button type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="auth-switch">
+            {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
