@@ -5,6 +5,15 @@ interface AuthProps {
   onBack: () => void;
 }
 
+const KNOWN_ERRORS: Record<string, string> = {
+  'Invalid login credentials': "that password doesn't match",
+  'User already registered': 'looks like you already have an account — try signing in',
+};
+
+function toBrandVoice(message: string): string {
+  return KNOWN_ERRORS[message] ?? message;
+}
+
 export function Auth({ onBack }: AuthProps) {
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -19,7 +28,7 @@ export function Auth({ onBack }: AuthProps) {
     setError(null);
     const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password);
     setSubmitting(false);
-    if (error) setError(error);
+    if (error) setError(toBrandVoice(error));
   }
 
   return (
