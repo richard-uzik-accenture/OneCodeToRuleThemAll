@@ -17,6 +17,7 @@
 - Modify: `vite.config.ts` — add `vite-plugin-pwa`
 - Modify: `index.html` — theme-color meta, apple-touch-icon
 - (No separate manifest file needed — `vite-plugin-pwa` generates it from `vite.config.ts`)
+- Modify: `src/components/AddTaskFab.tsx` — `+`/`n` keyboard shortcut to open quick-add on desktop
 
 ## Task 1: App icon and favicon
 
@@ -298,6 +299,53 @@ git add vite.config.ts index.html package.json
 git commit -m "feat: PWA manifest and installability"
 ```
 
+## Task 7: Keyboard shortcut for quick-add (desktop)
+
+On desktop, opening the add-task modal currently requires clicking the floating `+` button. Add a global keyboard shortcut so a keyboard-only user on the `Today` screen can open it without reaching for the mouse.
+
+**Interfaces:**
+- Modifies `AddTaskFab.tsx` only — no new files, no prop changes to other components.
+
+- [ ] **Step 1: Modify `src/components/AddTaskFab.tsx`** — listen for the shortcut key on `window` and open the same modal the `+` button opens. Guard against firing while the user is typing in any input/textarea/contenteditable (including while the add-task modal itself is already open), so the shortcut doesn't leak into normal typing elsewhere in the app:
+
+```tsx
+import { useEffect, useState, type FormEvent } from 'react';
+import { useTasks } from '../hooks/useTasks';
+
+export function AddTaskFab() {
+  const { addTask } = useTasks();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== '+' && e.key !== 'n') return;
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      if (isTyping || open) return;
+      e.preventDefault();
+      setOpen(true);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
+  // ...rest unchanged
+```
+
+`+` is the literal key (works without a modifier on most layouts via Shift+= or the numpad `+`); `n` is included as a mnemonic fallback ("new task") since `+` requires Shift on most keyboards and isn't always comfortable to reach one-handed. Both are ignored while any modal or text input already has focus, so they never collide with normal typing.
+
+- [ ] **Step 2: Test it yourself**
+
+Run `npm run dev` on desktop. With focus on the page background (not inside any input), press `+` — the add-task modal should open exactly as if you'd clicked the FAB. Press `n` — same result. Then open the modal and type a task title containing neither key issue (e.g. confirm typing `n` or `+` inside the title input does *not* re-trigger or close the modal). Confirm the shortcut does nothing while any other text field on the page (e.g. a future settings field) has focus.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/components/AddTaskFab.tsx
+git commit -m "feat: keyboard shortcut to open quick-add on desktop"
+```
+
 ## Phase 10 done when
 
-The app's favicon is the real mark (legible at 40px), fonts match `branding.md` instead of system defaults, done/drop use real stroke icons, the reorder animation is a tuned spring rather than the untuned default, every visible string has been checked against the tone-of-voice table, and the app is installable to a home screen on desktop, Android, and iOS with the correct brand icon and colors.
+The app's favicon is the real mark (legible at 40px), fonts match `branding.md` instead of system defaults, done/drop use real stroke icons, the reorder animation is a tuned spring rather than the untuned default, every visible string has been checked against the tone-of-voice table, the app is installable to a home screen on desktop, Android, and iOS with the correct brand icon and colors, and desktop users can open quick-add via a keyboard shortcut without touching the mouse.
