@@ -1,11 +1,20 @@
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
+import { useCompareInsertion } from '../hooks/useCompareInsertion';
 import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
+import { CompareDuel } from '../components/CompareDuel';
 
 export function Today() {
-  const { tasks, loading, completeTask, dropTask, reorderTasks, commitReorder } = useTasks();
+  const {
+    tasks, loading, completeTask, dropTask,
+    reorderTasks, commitReorder, insertTaskAtIndex,
+  } = useTasks();
   const { signOut } = useAuth();
+  const { pendingTitle, candidate, active, progress, begin, decide } = useCompareInsertion({
+    tasks,
+    onInsert: insertTaskAtIndex,
+  });
 
   if (loading) return null;
 
@@ -26,9 +35,7 @@ export function Today() {
 
       <header className="today-header-mobile">
         <span className="wordmark">reflow</span>
-        <div className="header-right">
-          <span className="count-chip">{tasks.length} today</span>
-        </div>
+        <div className="header-right"><span className="count-chip">{tasks.length} today</span></div>
       </header>
 
       <main className="today-main">
@@ -40,10 +47,14 @@ export function Today() {
           onDrop={dropTask}
           onReorder={reorderTasks}
           onReorderCommit={commitReorder}
+          dimmed={active}
         />
       </main>
 
-      <AddTaskFab />
+      {active && candidate && pendingTitle && (
+        <CompareDuel candidate={candidate} newTaskTitle={pendingTitle} progress={progress} onDecide={decide} />
+      )}
+      <AddTaskFab onAdd={begin} disabled={active} />
     </div>
   );
 }

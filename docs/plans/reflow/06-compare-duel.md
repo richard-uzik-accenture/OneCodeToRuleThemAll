@@ -232,7 +232,7 @@ git commit -m "feat: compare-insertion orchestration hook"
 - `TaskList` consumes (added prop): `dimmed?: boolean`.
 - `AddTaskFab` (from 04b) is modified so its submit calls `onAdd: (title: string) => void` instead of owning `addTask` directly — the duel needs to intercept "what happens on submit" (plain append vs. `begin()` the compare flow), so the FAB stops calling `useTasks()` itself.
 
-- [ ] **Step 1: Write `src/components/CompareDuel.tsx`**
+- [x] **Step 1: Write `src/components/CompareDuel.tsx`**
 
 ```tsx
 import { motion, type PanInfo } from 'framer-motion';
@@ -292,7 +292,7 @@ export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: Com
 
 One card, one fixed reference question — no side-by-side comparison. The tap buttons exist alongside the swipe gesture because a mouse-only desktop user shouldn't be forced to drag — both commit the same `onDecide` call. `progress` is presentation-only: derive `{ done, total }` from `CompareState`'s `low`/`high` bounds in `useCompareInsertion` (Step 4 below) — no change to the search algorithm itself.
 
-- [ ] **Step 2: Add the duel CSS** — append to `src/styles/global.css`:
+- [x] **Step 2: Add the duel CSS** — append to `src/styles/global.css`:
 
 ```css
 .duel-overlay {
@@ -366,7 +366,7 @@ One card, one fixed reference question — no side-by-side comparison. The tap b
 
 Same shape on mobile and desktop — no separate desktop-only layout, per 04b's spec (true swipe doesn't exist with a mouse, so the card stays draggable but the labeled buttons are the primary affordance on both).
 
-- [ ] **Step 3: Modify `src/components/TaskList.tsx`** to accept `dimmed`
+- [x] **Step 3: Modify `src/components/TaskList.tsx`** to accept `dimmed`
 
 Add `dimmed?: boolean` to `TaskListProps`, and apply a class conditionally on the existing wrapper:
 
@@ -400,7 +400,7 @@ export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit
 .task-list-dimmed { opacity: 0.25; transition: opacity 0.2s ease; pointer-events: none; }
 ```
 
-- [ ] **Step 4: Modify `src/components/AddTaskFab.tsx`** (from 04b) so its submit is pluggable
+- [x] **Step 4: Modify `src/components/AddTaskFab.tsx`** (from 04b) so its submit is pluggable
 
 The FAB currently calls `addTask` from `useTasks()` directly (04b Task 4). It needs to instead accept an `onAdd` prop, so `Today.tsx` can pass either plain `addTask` (pre-duel behavior) or the new `begin` function from `useCompareInsertion`:
 
@@ -455,7 +455,7 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
 
 Remove the `+` glyph text child from the earlier version's `<button className="fab">+</button>` — keeping `+` as the visible label still works, this just also wires `disabled` so the FAB can't be clicked while a duel is already active. Keep the `+` character in the button if 04b's version already renders it; only the props signature changes here.
 
-- [ ] **Step 5: Modify `src/hooks/useCompareInsertion.ts`** to expose progress
+- [x] **Step 5: Modify `src/hooks/useCompareInsertion.ts`** to expose progress
 
 Add a `progress` value derived from the current `CompareState`, alongside the existing returned fields:
 
@@ -523,7 +523,7 @@ export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs
 
 `Math.ceil(Math.log2(tasks.length + 1))` is the binary search's worst-case step count for the list size at the moment the duel started — a reasonable approximation for the progress dots; it doesn't need to be exact since it's a UI affordance, not the search logic itself (which is `compare.ts`'s job, untouched by this task).
 
-- [ ] **Step 6: Modify `src/pages/Today.tsx`** to wire the duel in
+- [x] **Step 6: Modify `src/pages/Today.tsx`** to wire the duel in
 
 Only the additions are shown — `Today.tsx` already has the rail/header shell and `AddTaskFab` from 04b, and the reorder props from Phase 5:
 

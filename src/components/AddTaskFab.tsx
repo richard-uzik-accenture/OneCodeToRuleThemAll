@@ -1,8 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { useTasks } from '../hooks/useTasks';
 
-export function AddTaskFab() {
-  const { addTask } = useTasks();
+interface AddTaskFabProps {
+  onAdd: (title: string) => void;
+  disabled?: boolean;
+}
+
+export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
 
@@ -10,14 +13,14 @@ export function AddTaskFab() {
     e.preventDefault();
     const title = value.trim();
     if (!title) return;
-    addTask(title);
+    onAdd(title);
     setValue('');
     setOpen(false);
   }
 
   return (
     <>
-      <button aria-label="add task" className="fab" onClick={() => setOpen(true)}>+</button>
+      <button aria-label="add task" className="fab" onClick={() => setOpen(true)} disabled={disabled}>+</button>
       {open && (
         <div className="modal-scrim" onClick={() => setOpen(false)}>
           <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>

@@ -10,20 +10,25 @@ interface UseCompareInsertionArgs {
 export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs) {
   const [pendingTitle, setPendingTitle] = useState<string | null>(null);
   const [state, setState] = useState<CompareState | null>(null);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const [stepsDone, setStepsDone] = useState(0);
 
   function begin(title: string) {
     const initial = startCompare(tasks.length);
     if (!initial) {
-      onInsert(title, tasks.length); // 0-1 existing tasks: skip the mechanic entirely
+      onInsert(title, tasks.length);
       return;
     }
     setPendingTitle(title);
     setState(initial);
+    setTotalSteps(Math.ceil(Math.log2(tasks.length + 1)));
+    setStepsDone(0);
   }
 
   function decide(newTaskWon: boolean) {
     if (!state || pendingTitle === null) return;
     const result = narrow(state, newTaskWon);
+    setStepsDone((n) => n + 1);
     if ('done' in result) {
       onInsert(pendingTitle, result.insertIndex);
       setPendingTitle(null);
@@ -35,5 +40,12 @@ export function useCompareInsertion({ tasks, onInsert }: UseCompareInsertionArgs
 
   const candidate = state ? tasks[state.candidateIndex] : null;
 
-  return { pendingTitle, candidate, active: pendingTitle !== null, begin, decide };
+  return {
+    pendingTitle,
+    candidate,
+    active: pendingTitle !== null,
+    progress: { done: stepsDone, total: totalSteps },
+    begin,
+    decide,
+  };
 }

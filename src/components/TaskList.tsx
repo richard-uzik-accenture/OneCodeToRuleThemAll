@@ -8,15 +8,22 @@ interface TaskListProps {
   onDrop: (id: string) => void;
   onReorder: (newOrder: Task[]) => void;
   onReorderCommit: () => void;
+  dimmed?: boolean;
 }
 
-export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit }: TaskListProps) {
+export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit, dimmed }: TaskListProps) {
   if (tasks.length === 0) {
     return <p className="empty-state">nothing on the list yet — tap + to add your first task.</p>;
   }
 
   return (
-    <Reorder.Group as="div" axis="y" values={tasks} onReorder={onReorder} className="task-list">
+    <Reorder.Group
+      as="div"
+      axis="y"
+      values={tasks}
+      onReorder={onReorder}
+      className={dimmed ? 'task-list task-list-dimmed' : 'task-list'}
+    >
       <AnimatePresence>
         {tasks.map((task) => (
           <TaskRow
