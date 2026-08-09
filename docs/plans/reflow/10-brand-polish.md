@@ -94,7 +94,7 @@ import '@fontsource/inter/600.css';
 import '@fontsource/jetbrains-mono/400.css';
 ```
 
-- [ ] **Step 4: Set the wordmark's `fl` ligature** — `branding.md` §3 calls for the wordmark's `fl` to render as a true ligature. Wherever "reflow" is set as the wordmark (currently `SignIn.tsx`'s `<h1>` and `MorningFlow.tsx`'s header), add `style={{ fontVariantLigatures: 'common-ligatures', fontFeatureSettings: '"liga" 1' }}` — General Sans supports standard ligatures, so this alone is enough; no custom glyph substitution needed.
+- [ ] **Step 4: Set the wordmark's `fl` ligature** — `branding.md` §3 calls for the wordmark's `fl` to render as a true ligature. Wherever "reflow" is set as the wordmark (currently `Landing.tsx`'s `<h1>`, `Auth.tsx`'s `<h1>`, `Today.tsx`'s header `<span>`, and `MorningFlow.tsx`'s header), add `style={{ fontVariantLigatures: 'common-ligatures', fontFeatureSettings: '"liga" 1' }}` — General Sans supports standard ligatures, so this alone is enough; no custom glyph substitution needed.
 
 - [ ] **Step 5: Test it yourself**
 
@@ -103,7 +103,7 @@ Run `npm run dev`. Confirm the sign-in screen's "reflow" heading and body text v
 - [ ] **Step 6: Commit**
 
 ```bash
-git add public/fonts src/styles/tokens.css src/main.tsx src/pages/SignIn.tsx src/components/MorningFlow.tsx package.json
+git add public/fonts src/styles/tokens.css src/main.tsx src/pages/Landing.tsx src/pages/Auth.tsx src/pages/Today.tsx src/components/MorningFlow.tsx package.json
 git commit -m "feat: self-hosted brand fonts"
 ```
 
@@ -237,7 +237,8 @@ git commit -m "feat: tune reflow spring to match brand motion spec"
 | `src/components/LeftoverCard.tsx` | "still open · {remaining} left" | Uses the exact locked phrase "still open" (not "overdue") — compliant, verify it stayed that way. |
 | `src/components/BrainDump.tsx` | "what's new today? add as many as you want, in any order — you'll sort them next." | Check for stray exclamation marks or coach-y phrasing. |
 | `src/components/CompareDuel.tsx` | "which first?" | This is branding.md's own example of the one high-energy, dry-wit moment — keep it exactly as specified, don't soften or embellish it. |
-| `src/pages/SignIn.tsx` | Error messages surfaced from Supabase Auth (e.g. "Invalid login credentials") | These come from Supabase directly and won't match the brand voice out of the box — wrap them in a small map of known error codes to on-brand phrasing, e.g. `"that password doesn't match"` instead of the raw Supabase string, falling back to the raw message for anything unmapped. |
+| `src/pages/Auth.tsx` | Error messages surfaced from Supabase Auth (e.g. "Invalid login credentials") | These come from Supabase directly and won't match the brand voice out of the box — wrap them in a small map of known error codes to on-brand phrasing, e.g. `"that password doesn't match"` instead of the raw Supabase string, falling back to the raw message for anything unmapped. |
+| `src/pages/Landing.tsx` | Tagline and one-liner ("your day doesn't fall apart — it reflows." / "one ranked list for today...") | Already on-brand (from `branding.md`'s own thesis line) — check it still reads calm and factual next to whatever else got added to the page since Phase 1. |
 | `src/hooks/useRolloverPrompt.ts` banner copy (in `Today.tsx`) | "still open from before — start my day?" / "not now" | Verify against the say/not table — this is the closest the app comes to "you have unfinished work," so it's worth a second read specifically for guilt-adjacent framing. |
 
 - [ ] **Step 2: Test it yourself** — read through the whole app once, screen by screen (sign-in, empty list, populated list, compare duel, leftover triage, brain dump, merge), out loud, and flag anything that reads like "software talking down to you" rather than branding.md's "calm friend."

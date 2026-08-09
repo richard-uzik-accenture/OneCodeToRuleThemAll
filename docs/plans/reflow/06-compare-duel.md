@@ -415,6 +415,7 @@ export function AddBar({ onAdd, disabled }: AddBarProps) {
 
 ```tsx
 import { useTasks } from '../hooks/useTasks';
+import { useAuth } from '../hooks/useAuth';
 import { useCompareInsertion } from '../hooks/useCompareInsertion';
 import { TaskList } from '../components/TaskList';
 import { AddBar } from '../components/AddBar';
@@ -422,6 +423,7 @@ import { CompareDuel } from '../components/CompareDuel';
 
 export function Today() {
   const { tasks, loading, completeTask, dropTask, reorderTasks, commitReorder, insertTaskAtIndex } = useTasks();
+  const { signOut } = useAuth();
   const { pendingTitle, candidate, active, begin, decide } = useCompareInsertion({
     tasks,
     onInsert: insertTaskAtIndex,
@@ -431,6 +433,17 @@ export function Today() {
 
   return (
     <div>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px' }}>
+        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--petrol)' }}>
+          reflow
+        </span>
+        <button
+          onClick={signOut}
+          style={{ background: 'none', border: 'none', color: 'var(--stone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+        >
+          sign out
+        </button>
+      </header>
       <TaskList
         tasks={tasks}
         onComplete={completeTask}

@@ -26,6 +26,16 @@ Three sub-decisions from `PRODUCT.md`, all currently shipped with the simplest w
 - **Changing your mind mid-compare.** Interim: **there is no cancel/skip button** — once a duel starts (3+ tasks), you must resolve it. This is the one open decision most worth revisiting early; idea.md's own instinct was "likely a skip option that dumps the task at the bottom for manual placement later via drag." To add it: a "skip" affordance in `CompareDuel.tsx` calling a new `skip()` function in `useCompareInsertion.ts` that inserts at `tasks.length` (reusing the same path as the 0-1-task skip case) instead of continuing the search.
 - **"About the same" / ties.** Interim: forced binary choice, no third option. Adding one means `compare.ts`'s `narrow()` needs a third branch (place adjacent to the candidate without continuing the search) — work out the exact adjacency semantics (immediately before? after? does it matter?) before touching the algorithm, since this is the one piece of logic in the app with real test coverage protecting it.
 
-## 4. Parked for v2 (not part of this plan at all)
+## 4. Confirm-email on sign-up
+
+**Where this comes from:** `01-scaffold-and-auth.md` Task 4, added when the plan moved from a single hand-created account to a real public sign-up flow.
+
+**Interim default (Phase 1):** "Confirm email" is off in Supabase Auth settings — signing up returns an immediately usable session, no email round-trip, no verification UI to build.
+
+**Why it's flagged:** anyone can sign up with any email address right now, including one that isn't theirs, and start using the app unconfirmed. Fine while you're effectively the only real user; not fine once this is genuinely public.
+
+**If you decide to turn confirmation on:** flip the Supabase setting, then `Auth.tsx`'s sign-up path needs a new state — after `signUp()` succeeds but before a session exists, show a "check your email" message instead of assuming the user lands straight in the app.
+
+## 5. Parked for v2 (not part of this plan at all)
 
 idea.md explicitly scopes "plan vs. actual" analytics (which days/meetings tend to blow up the plan, how consistently the plan holds) out of v1. Nothing in Phases 1-10 supports it, and no phase should be retrofitted to sneak it in — if you want it, it's a new plan built on top of a working v1, not a task squeezed into this one.

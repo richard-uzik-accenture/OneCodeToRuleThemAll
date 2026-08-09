@@ -61,7 +61,7 @@ Replace the existing fixed-position "start my day" text button at the bottom of 
         <div
           style={{
             position: 'fixed',
-            top: 12,
+            top: 64,
             left: 12,
             right: 12,
             display: 'flex',
@@ -91,7 +91,7 @@ Replace the existing fixed-position "start my day" text button at the bottom of 
           onClick={morning.start}
           style={{
             position: 'fixed',
-            top: 12,
+            top: 64,
             right: 12,
             background: 'none',
             border: 'none',
@@ -104,6 +104,8 @@ Replace the existing fixed-position "start my day" text button at the bottom of 
         </button>
       )}
 ```
+
+Both stay at `top: 64` (matching Phase 7's fix) to clear the header's sign-out control.
 
 The plain button never disappears — even with no leftovers, or after dismissing the prompt, you can still start the flow manually (Phase 7's brain-dump-only path handles the zero-leftover case).
 

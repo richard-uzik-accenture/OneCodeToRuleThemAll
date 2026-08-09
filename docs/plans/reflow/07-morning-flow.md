@@ -451,6 +451,7 @@ export function MorningFlow(props: MorningFlowProps) {
 
 ```tsx
 import { useTasks } from '../hooks/useTasks';
+import { useAuth } from '../hooks/useAuth';
 import { useCompareInsertion } from '../hooks/useCompareInsertion';
 import { useMorningFlow } from '../hooks/useMorningFlow';
 import { TaskList } from '../components/TaskList';
@@ -470,6 +471,7 @@ export function Today() {
     insertTaskAtIndex,
     keepLeftover,
   } = useTasks();
+  const { signOut } = useAuth();
 
   const { pendingTitle, candidate, active: compareActive, begin, decide } = useCompareInsertion({
     tasks,
@@ -501,6 +503,17 @@ export function Today() {
 
   return (
     <div>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px' }}>
+        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--petrol)' }}>
+          reflow
+        </span>
+        <button
+          onClick={signOut}
+          style={{ background: 'none', border: 'none', color: 'var(--stone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+        >
+          sign out
+        </button>
+      </header>
       <TaskList
         tasks={tasks}
         onComplete={completeTask}
@@ -517,7 +530,7 @@ export function Today() {
         onClick={morning.start}
         style={{
           position: 'fixed',
-          top: 12,
+          top: 64,
           right: 12,
           background: 'none',
           border: 'none',
@@ -532,6 +545,8 @@ export function Today() {
   );
 }
 ```
+
+The "start my day" trigger sits at `top: 64` rather than flush with the page top, to clear the header's sign-out control introduced in Phase 3.
 
 - [ ] **Step 3: Test it yourself**
 
