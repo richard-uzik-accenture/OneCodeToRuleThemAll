@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 interface AddTaskFabProps {
   onAdd: (title: string) => void;
@@ -8,6 +8,19 @@ interface AddTaskFabProps {
 export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== '+' && e.key !== 'n') return;
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      if (isTyping || open || disabled) return;
+      e.preventDefault();
+      setOpen(true);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, disabled]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
