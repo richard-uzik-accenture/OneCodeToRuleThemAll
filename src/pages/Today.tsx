@@ -4,7 +4,7 @@ import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
 
 export function Today() {
-  const { tasks, loading, completeTask, dropTask } = useTasks();
+  const { tasks, loading, completeTask, dropTask, reorderTasks, commitReorder } = useTasks();
   const { signOut } = useAuth();
 
   if (loading) return null;
@@ -34,7 +34,13 @@ export function Today() {
       <main className="today-main">
         <h1 className="list-heading">today</h1>
         <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
-        <TaskList tasks={tasks} onComplete={completeTask} onDrop={dropTask} />
+        <TaskList
+          tasks={tasks}
+          onComplete={completeTask}
+          onDrop={dropTask}
+          onReorder={reorderTasks}
+          onReorderCommit={commitReorder}
+        />
       </main>
 
       <AddTaskFab />

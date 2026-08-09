@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useDragControls, type PointerEvent as MotionPointerEvent } from 'framer-motion';
+import { useDragControls } from 'framer-motion';
 
 const LONG_PRESS_MS = 350;
 const MOVE_CANCEL_THRESHOLD_PX = 10;
@@ -19,12 +19,12 @@ export function useLongPressDrag() {
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.pointerType === 'mouse') {
-      dragControls.start(e as unknown as MotionPointerEvent);
+      dragControls.start(e);
       return;
     }
     startPointRef.current = { x: e.clientX, y: e.clientY };
     timerRef.current = window.setTimeout(() => {
-      dragControls.start(e as unknown as MotionPointerEvent);
+      dragControls.start(e);
       timerRef.current = null;
     }, LONG_PRESS_MS);
   }
