@@ -592,7 +592,7 @@ export function Today() {
 
 `addTask` (plain append) stays imported even though this file no longer calls it directly here — `07-morning-flow.md`'s brain-dump step needs it, per that phase's own notes; if Phase 7 isn't implemented yet, remove the now-unused import rather than leave dead code, and re-add it when Phase 7 needs it.
 
-- [ ] **Step 7: Test it yourself**
+- [x] **Step 7: Test it yourself**
 
 Run `npm run dev` with 0 tasks. Confirm:
 1. Adding the 1st and 2nd tasks append directly — no duel appears (0-1 task skip case).
@@ -602,7 +602,7 @@ Run `npm run dev` with 0 tasks. Confirm:
 5. Refresh the page — confirm the final order persisted.
 6. In the Supabase Table Editor, spot-check that inserted ranks sit strictly between their neighbors' ranks.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/CompareDuel.tsx src/components/TaskList.tsx src/components/AddTaskFab.tsx src/hooks/useCompareInsertion.ts src/pages/Today.tsx src/styles/global.css
