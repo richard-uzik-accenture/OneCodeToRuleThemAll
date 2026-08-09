@@ -27,7 +27,7 @@ export function AddBar({ onAdd }: AddBarProps) {
         gap: 8,
         padding: 12,
         background: 'var(--paper)',
-        borderTop: `1px solid var(--silt)`,
+        borderTop: `1px solid var(--haze)`,
       }}
     >
       <input
@@ -39,9 +39,9 @@ export function AddBar({ onAdd }: AddBarProps) {
           flex: 1,
           padding: '10px 14px',
           borderRadius: 999,
-          border: `1px solid var(--silt)`,
-          background: 'var(--sand)',
-          color: 'var(--graphite)',
+          border: `1px solid var(--haze)`,
+          background: 'var(--mist)',
+          color: 'var(--ink)',
           fontFamily: 'var(--font-body)',
         }}
       />
@@ -51,7 +51,7 @@ export function AddBar({ onAdd }: AddBarProps) {
           padding: '10px 18px',
           borderRadius: 999,
           border: 'none',
-          background: 'var(--petrol)',
+          background: 'var(--violet)',
           color: 'var(--paper)',
           fontFamily: 'var(--font-body)',
         }}

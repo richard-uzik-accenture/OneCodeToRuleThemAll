@@ -12,12 +12,12 @@ export function Today() {
   return (
     <div>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px' }}>
-        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--petrol)' }}>
+        <span style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)' }}>
           reflow
         </span>
         <button
           onClick={signOut}
-          style={{ background: 'none', border: 'none', color: 'var(--stone)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+          style={{ background: 'none', border: 'none', color: 'var(--dusk)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
         >
           sign out
         </button>

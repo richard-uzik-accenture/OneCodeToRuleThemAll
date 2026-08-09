@@ -9,7 +9,7 @@ html, body, #root {
 
 body {
   background: var(--paper);
-  color: var(--graphite);
+  color: var(--ink);
   font-family: var(--font-body);
 }
 

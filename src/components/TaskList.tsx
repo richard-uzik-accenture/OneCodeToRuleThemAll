@@ -11,7 +11,7 @@ interface TaskListProps {
 export function TaskList({ tasks, onComplete, onDrop }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <p style={{ color: 'var(--stone)', fontFamily: 'var(--font-body)', padding: 18 }}>
+      <p style={{ color: 'var(--dusk)', fontFamily: 'var(--font-body)', padding: 18 }}>
         nothing on the list yet — add your first task below.
       </p>
     );

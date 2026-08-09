@@ -28,11 +28,11 @@ export function Auth({ onBack }: AuthProps) {
         <button
           type="button"
           onClick={onBack}
-          style={{ justifySelf: 'start', background: 'none', border: 'none', color: 'var(--stone)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+          style={{ justifySelf: 'start', background: 'none', border: 'none', color: 'var(--dusk)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
         >
           ← back
         </button>
-        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--petrol)' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'lowercase', color: 'var(--violet)' }}>
           reflow
         </h1>
         <input
@@ -51,14 +51,14 @@ export function Auth({ onBack }: AuthProps) {
           autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
           required
         />
-        {error && <p style={{ color: 'var(--stone)' }}>{error}</p>}
+        {error && <p style={{ color: 'var(--dusk)' }}>{error}</p>}
         <button type="submit" disabled={submitting}>
           {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
         </button>
         <button
           type="button"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-          style={{ background: 'none', border: 'none', color: 'var(--stone)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+          style={{ background: 'none', border: 'none', color: 'var(--dusk)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
         >
           {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
         </button>

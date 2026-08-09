@@ -15,8 +15,8 @@ export function TaskRow({ task, onComplete, onDrop }: TaskRowProps) {
         gap: 12,
         padding: '14px 18px',
         borderRadius: 14,
-        background: 'var(--sand)',
-        color: 'var(--graphite)',
+        background: 'var(--mist)',
+        color: 'var(--ink)',
         fontFamily: 'var(--font-body)',
       }}
     >
@@ -27,7 +27,7 @@ export function TaskRow({ task, onComplete, onDrop }: TaskRowProps) {
           width: 20,
           height: 20,
           borderRadius: '50%',
-          border: `1.75px solid var(--stone)`,
+          border: `1.75px solid var(--dusk)`,
           background: 'transparent',
           flexShrink: 0,
           cursor: 'pointer',
@@ -40,7 +40,7 @@ export function TaskRow({ task, onComplete, onDrop }: TaskRowProps) {
         style={{
           border: 'none',
           background: 'transparent',
-          color: 'var(--silt)',
+          color: 'var(--haze)',
           cursor: 'pointer',
           fontFamily: 'var(--font-body)',
         }}
