@@ -9,6 +9,7 @@ import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
 import { MorningFlow } from '../components/MorningFlow';
+import { SignOut } from '../components/icons/SignOut';
 
 export function Today() {
   const {
@@ -82,7 +83,12 @@ export function Today() {
 
       <header className="today-header-mobile">
         <span className="wordmark">reflow</span>
-        <div className="header-right"><span className="count-chip">{tasks.length} today</span></div>
+        <div className="header-right">
+          <span className="count-chip">{tasks.length} today</span>
+          <button className="header-signout" aria-label="sign out" onClick={signOut}>
+            <SignOut width={20} height={20} />
+          </button>
+        </div>
       </header>
 
       <main className="today-main">
