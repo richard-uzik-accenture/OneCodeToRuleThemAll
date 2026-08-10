@@ -252,4 +252,13 @@ The reflow animation matters most: the eye needs to follow where a task went, be
 - Red/green for the two sides of a compare
 - Gradients, shadows, or glow on the mark
 - Warm cream/beige neutrals (superseded — see §2's revision note)
+- Coral in a glow/gradient effect, or a multi-hue rainbow gradient, anywhere in the product
+
+**Exception — pointer-reactive edge glow on pre-login surfaces only**
+
+The landing page and sign-in card (`BorderGlow`, `src/components/BorderGlow.tsx`) use a quiet single-hue ink-violet edge light that brightens near the pointer. This is scoped narrowly and should not be treated as license to add glow elsewhere:
+
+- Single hue only — a desaturated violet (`hsl(252deg 38% 55%)`), never the coral accent, never a multi-color mesh.
+- Pointer-reactive only, not idle — it stays off at rest and never plays on mount; this keeps it inside the "nothing animates at rest" motion rule (§6).
+- Pre-login only (`Landing.tsx`, `Auth.tsx`) — it's a first-impression cue, not a UI pattern. Do not add it to task rows, the compare/duel, modals, or any in-app chrome. Coral stays the only accent inside the product; this glow never appears alongside a decision moment.
 - Coral on chrome (buttons, headers, badges)

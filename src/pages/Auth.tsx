@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Mark } from '../components/icons/Mark';
 import { ChevronLeft } from '../components/icons/ChevronLeft';
+import { BorderGlow } from '../components/BorderGlow';
 
 interface AuthProps {
   onBack: () => void;
@@ -42,63 +43,65 @@ export function Auth({ onBack }: AuthProps) {
         <ChevronLeft />
       </button>
       <div className="auth-frame">
-        <div className="auth-card">
-          <Mark className="auth-mark" aria-hidden="true" />
-          <h1 className="auth-wordmark">reflow</h1>
+        <BorderGlow borderRadius={24} glowRadius={28} edgeSensitivity={40}>
+          <div className="auth-card">
+            <Mark className="auth-mark" aria-hidden="true" />
+            <h1 className="auth-wordmark">reflow</h1>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <input
-              type="email"
-              placeholder="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
-              className="auth-input"
-              required
-            />
-            <input
-              type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              className="auth-input"
-              required
-            />
-            <AnimatePresence>
-              {error && (
-                <motion.p
-                  className="auth-error"
-                  role="alert"
-                  initial={reducedMotion ? false : { opacity: 0, height: 0, marginBottom: -10 }}
-                  animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: -10 }}
-                  transition={{ duration: 0.2 }}
+            <form onSubmit={handleSubmit} className="auth-form">
+              <input
+                type="email"
+                placeholder="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                className="auth-input"
+                required
+              />
+              <input
+                type="password"
+                placeholder="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                className="auth-input"
+                required
+              />
+              <AnimatePresence>
+                {error && (
+                  <motion.p
+                    className="auth-error"
+                    role="alert"
+                    initial={reducedMotion ? false : { opacity: 0, height: 0, marginBottom: -10 }}
+                    animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
+                    exit={{ opacity: 0, height: 0, marginBottom: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <button type="submit" className="auth-submit" disabled={submitting}>
+                {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
+              </button>
+            </form>
+
+            <button type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="auth-switch">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={mode}
+                  initial={reducedMotion ? false : { opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  style={{ display: 'inline-block' }}
                 >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
-            <button type="submit" className="auth-submit" disabled={submitting}>
-              {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
+                  {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
+                </motion.span>
+              </AnimatePresence>
             </button>
-          </form>
-
-          <button type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="auth-switch">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={mode}
-                initial={reducedMotion ? false : { opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.15 }}
-                style={{ display: 'inline-block' }}
-              >
-                {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
-              </motion.span>
-            </AnimatePresence>
-          </button>
-        </div>
+          </div>
+        </BorderGlow>
       </div>
     </div>
   );
