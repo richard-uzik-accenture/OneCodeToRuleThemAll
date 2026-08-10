@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
@@ -25,31 +26,42 @@ export function Today() {
 
   if (loading) return null;
 
-  if (morning.active) {
-    const keptCount = tasks.filter((t) => t.last_triaged_on === new Date().toISOString().slice(0, 10)).length;
-    return (
-      <MorningFlow
-        step={morning.step as 'leftover' | 'braindump' | 'merge'}
-        currentLeftover={morning.currentLeftover}
-        remaining={morning.remaining}
-        tasks={tasks}
-        keptCount={keptCount}
-        onResolveLeftover={morning.resolveLeftover}
-        onAddBrainDumpTask={morning.addBrainDumpTask}
-        onFinishBrainDump={morning.finishBrainDump}
-        onComplete={completeTask}
-        onDrop={dropTask}
-        onReorder={reorderTasks}
-        onReorderCommit={commitReorder}
-        onFinishMerge={morning.finishMerge}
-        onClose={morning.close}
-      />
-    );
-  }
-
+  const keptCount = tasks.filter((t) => t.last_triaged_on === new Date().toISOString().slice(0, 10)).length;
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
+    <>
+    {createPortal(
+      <AnimatePresence>
+        {morning.active && (
+          <motion.div
+            className="flow-mount"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 30, mass: 0.9 } }}
+            exit={{ opacity: 0, y: 16, transition: { duration: 0.22, ease: 'easeIn' } }}
+          >
+            <MorningFlow
+              step={morning.step as 'leftover' | 'braindump' | 'merge'}
+              currentLeftover={morning.currentLeftover}
+              remaining={morning.remaining}
+              tasks={tasks}
+              keptCount={keptCount}
+              onResolveLeftover={morning.resolveLeftover}
+              onAddBrainDumpTask={morning.addBrainDumpTask}
+              onFinishBrainDump={morning.finishBrainDump}
+              onComplete={completeTask}
+              onDrop={dropTask}
+              onReorder={reorderTasks}
+              onReorderCommit={commitReorder}
+              onFinishMerge={morning.finishMerge}
+              onClose={morning.close}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body,
+    )}
+
     <div className="today-shell">
       <aside className="today-rail">
         <span className="wordmark">reflow</span>
@@ -109,30 +121,40 @@ export function Today() {
         />
       </main>
 
-      {active && candidate && pendingTitle && (
-        <CompareDuel candidate={candidate} newTaskTitle={pendingTitle} progress={progress} onDecide={decide} />
-      )}
-      <AnimatePresence>
-        {placedAt && (
-          <motion.div
-            className="placed-confirmation"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.div
-              className="placed-confirmation-card"
-              initial={{ scale: 0.9, y: 6 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-            >
-              placed as #{placedAt.index + 1} today
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <AddTaskFab onAdd={begin} disabled={active} />
     </div>
+
+    {/* Fixed-position overlays are portaled to body so they escape the page
+        transition's transform on .screen-frame — a transformed ancestor turns
+        position:fixed into position:absolute, which would misplace them. */}
+    {createPortal(
+      <>
+        {active && candidate && pendingTitle && (
+          <CompareDuel candidate={candidate} newTaskTitle={pendingTitle} progress={progress} onDecide={decide} />
+        )}
+        <AnimatePresence>
+          {placedAt && (
+            <motion.div
+              className="placed-confirmation"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                className="placed-confirmation-card"
+                initial={{ scale: 0.9, y: 6 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+              >
+                placed as #{placedAt.index + 1} today
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AddTaskFab onAdd={begin} disabled={active} />
+      </>,
+      document.body,
+    )}
+    </>
   );
 }

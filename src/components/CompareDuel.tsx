@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import type { Task } from '../lib/tasks';
 
 interface CompareDuelProps {
@@ -15,6 +15,13 @@ const EXIT_DURATION_S = 0.175;
 
 export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: CompareDuelProps) {
   const [exitDirection, setExitDirection] = useState<1 | -1 | null>(null);
+
+  // This component instance is reused across comparisons — only `candidate`
+  // changes. Reset the committed-exit state for each new comparison so the
+  // draggable card reappears (otherwise it stays hidden after the first swipe).
+  useLayoutEffect(() => {
+    setExitDirection(null);
+  }, [candidate.id]);
 
   function commit(newTaskWon: boolean) {
     setExitDirection(newTaskWon ? 1 : -1);

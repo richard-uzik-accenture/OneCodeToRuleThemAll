@@ -25,6 +25,13 @@ button {
   }
 }
 
+/* Wrapper for AnimatePresence page transitions — must carry the height chain
+   so the pages' own `min-height: 100%` / centering still resolves. */
+.screen-frame {
+  height: 100%;
+  transform-origin: center top;
+}
+
 .today-shell {
   display: grid;
   grid-template-columns: 1fr;
@@ -479,10 +486,18 @@ button {
 .braindump-done:active { transform: scale(0.98); }
 .braindump-done:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 
-.flow-shell {
+/* The animated mount layer for the morning flow. Because it carries a
+   transform during the entrance animation, it (not .flow-shell) is the fixed,
+   full-viewport, top layer — a transform on an ancestor would otherwise break
+   the child's position:fixed. */
+.flow-mount {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 30;
+}
+.flow-shell {
+  position: absolute;
+  inset: 0;
   background: var(--paper);
   overflow-y: auto;
   display: flex;
@@ -519,6 +534,14 @@ button {
 .flow-step.done { background: var(--violet); }
 .flow-step.active { background: var(--signal-coral); }
 
+.flow-step-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.flow-step-body > * { flex: 1; }
+
 .flow-merge { padding: 24px 16px 24px; flex: 1; }
 .merge-title { font-family: var(--font-display); font-size: 19px; font-weight: 500; color: var(--violet); margin: 0 0 4px; }
 .merge-sub { font-size: 13px; color: var(--dusk); margin: 0 0 18px; }
@@ -549,11 +572,12 @@ button {
 
 @media (min-width: 900px) {
   .flow-shell {
-    background: linear-gradient(180deg, rgba(250,249,251,0.5) 0%, rgba(250,249,251,0.97) 26%);
+    background: var(--paper);
     align-items: center;
     padding-top: 40px;
   }
-  .flow-header, .flow-steps, .flow-merge { width: 460px; }
+  .flow-header, .flow-steps, .flow-step-body { width: 460px; }
+  .flow-step-body { align-items: stretch; }
   .flow-merge { padding: 24px 0; }
 }
 

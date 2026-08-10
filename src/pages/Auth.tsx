@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Mark } from '../components/icons/Mark';
 import { ChevronLeft } from '../components/icons/ChevronLeft';
 
@@ -18,6 +20,7 @@ function toBrandVoice(message: string): string {
 
 export function Auth({ onBack }: AuthProps) {
   const { signIn, signUp } = useAuth();
+  const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,14 +65,38 @@ export function Auth({ onBack }: AuthProps) {
               className="auth-input"
               required
             />
-            {error && <p className="auth-error" role="alert">{error}</p>}
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  className="auth-error"
+                  role="alert"
+                  initial={reducedMotion ? false : { opacity: 0, height: 0, marginBottom: -10 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
             <button type="submit" className="auth-submit" disabled={submitting}>
               {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
             </button>
           </form>
 
           <button type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="auth-switch">
-            {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={mode}
+                initial={reducedMotion ? false : { opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                style={{ display: 'inline-block' }}
+              >
+                {mode === 'signin' ? "don't have an account? sign up" : 'already have an account? sign in'}
+              </motion.span>
+            </AnimatePresence>
           </button>
         </div>
       </div>

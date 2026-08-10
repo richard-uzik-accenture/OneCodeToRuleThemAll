@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
+import { useReducedMotion } from './hooks/useReducedMotion';
+import { pageVariants } from './lib/transitions';
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Today } from './pages/Today';
@@ -7,14 +10,31 @@ import { Today } from './pages/Today';
 function App() {
   const { session, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   if (loading) return null;
 
-  if (!session) {
-    return showAuth ? <Auth onBack={() => setShowAuth(false)} /> : <Landing onGetStarted={() => setShowAuth(true)} />;
-  }
+  const screen = session ? 'today' : showAuth ? 'auth' : 'landing';
 
-  return <Today />;
+  // Note: Today's fixed-position overlays (FAB, add-task modal, compare duel,
+  // morning flow) are portaled to document.body so the page-transition
+  // transform on .screen-frame never becomes their containing block.
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={screen}
+        className="screen-frame"
+        variants={reducedMotion ? undefined : pageVariants}
+        initial="initial"
+        animate="enter"
+        exit="exit"
+      >
+        {screen === 'today' && <Today />}
+        {screen === 'auth' && <Auth onBack={() => setShowAuth(false)} />}
+        {screen === 'landing' && <Landing onGetStarted={() => setShowAuth(true)} />}
+      </motion.div>
+    </AnimatePresence>
+  );
 }
 
 export default App;
