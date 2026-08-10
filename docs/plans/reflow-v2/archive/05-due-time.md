@@ -46,10 +46,10 @@ Re-evaluate `isPast` on a light interval (e.g. a 60s tick already cheap for a pe
 
 ## Deliverables checklist
 
-- [ ] Migration column + type + `updateTask` wiring (shared foundation).
-- [ ] `dueTime.ts` + `dueTime.test.ts` (tests first).
-- [ ] Edit-modal time field (edit mode only; absent in add mode and every morning/leftover surface).
-- [ ] Row chip with upcoming/passed states; no reordering; reduced-motion safe (chip flip is a color change, not motion).
+- [x] Migration column + type + `updateTask` wiring (shared foundation).
+- [x] `dueTime.ts` + `dueTime.test.ts` (tests first).
+- [x] Edit-modal time field (edit mode only; absent in add mode and every morning/leftover surface).
+- [x] Row chip with upcoming/passed states; no reordering; reduced-motion safe (chip flip is a color change, not motion).
 
 ## Test it yourself
 

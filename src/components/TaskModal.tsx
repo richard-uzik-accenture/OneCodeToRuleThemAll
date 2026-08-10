@@ -2,25 +2,31 @@ import { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { TagInput } from './TagInput';
+import { TimePicker } from './TimePicker';
 
 interface TaskModalProps {
   mode: 'add' | 'edit';
-  initial?: { title: string; tags?: string[] };
+  initial?: { title: string; tags?: string[]; due_time?: string | null };
   knownTags?: string[];
-  onSubmit: (values: { title: string; tags: string[] }) => void;
+  onSubmit: (values: { title: string; tags: string[]; due_time?: string | null }) => void;
   onClose: () => void;
 }
 
 export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: TaskModalProps) {
   const [value, setValue] = useState(initial?.title ?? '');
   const [tags, setTags] = useState(initial?.tags ?? []);
+  const [dueTime, setDueTime] = useState(initial?.due_time ?? '');
   const reducedMotion = useReducedMotion();
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const title = value.trim();
     if (!title) return;
-    onSubmit({ title, tags });
+    if (mode === 'edit') {
+      onSubmit({ title, tags, due_time: dueTime || null });
+    } else {
+      onSubmit({ title, tags });
+    }
   }
 
   return (
@@ -54,6 +60,14 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
         />
         <label className="modal-label" htmlFor="task-modal-tags">tags</label>
         <TagInput value={tags} known={knownTags} onChange={setTags} />
+        {mode === 'edit' && (
+          <>
+            <label className="modal-label" htmlFor="task-modal-due-time">due time (optional)</label>
+            <div className="due-time-field">
+              <TimePicker id="task-modal-due-time" value={dueTime} onChange={setDueTime} />
+            </div>
+          </>
+        )}
         <div className="modal-actions">
           <button type="button" className="modal-cancel" onClick={onClose}>cancel</button>
           <button type="submit" className="modal-submit">{mode === 'add' ? 'add task' : 'save'}</button>

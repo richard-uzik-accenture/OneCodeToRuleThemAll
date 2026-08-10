@@ -304,6 +304,65 @@ button {
   font-size: 16px;
   margin-bottom: 16px;
 }
+.due-time-field { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.due-time-clear {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--dusk);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  transition: color 0.15s ease;
+}
+.due-time-clear:hover { color: var(--ink); }
+.due-time-clear:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
+
+.time-picker { display: inline-flex; align-items: center; gap: 10px; }
+.time-picker-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--haze);
+  background: var(--mist);
+  transition: border-color 0.15s ease;
+}
+.time-picker-field:focus-within { border-color: var(--violet-soft); }
+.time-picker-icon { color: var(--dusk); flex: none; }
+.time-picker-segment {
+  width: 1.4em;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  text-align: center;
+  caret-color: var(--violet);
+}
+.time-picker-segment::placeholder { color: var(--haze); }
+.time-picker-segment:focus { outline: none; }
+.time-picker-colon { font-family: var(--font-mono); font-size: 15px; color: var(--dusk); }
+.time-picker-period {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--dusk);
+  background: var(--haze);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 9px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.time-picker-period:hover { background: var(--violet-soft); color: var(--paper); }
+.time-picker-period:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
+
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .modal-input {
   transition: border-color 0.15s ease;
@@ -351,6 +410,21 @@ button {
   padding: 3px 9px;
   line-height: 1.4;
 }
+.due-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--mist);
+  color: var(--dusk);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--haze);
+  border-radius: 999px;
+  padding: 3px 9px;
+  line-height: 1.4;
+}
+.due-chip-past { color: var(--haze); }
 .tag-chip-removable { padding-right: 5px; }
 .tag-chip-remove {
   display: grid;

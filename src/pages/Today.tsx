@@ -141,7 +141,7 @@ export function Today() {
       {editingTask && (
         <TaskModal
           mode="edit"
-          initial={{ title: editingTask.title, tags: editingTask.tags }}
+          initial={{ title: editingTask.title, tags: editingTask.tags, due_time: editingTask.due_time }}
           knownTags={knownTags}
           onSubmit={(values) => {
             editTask(editingTask.id, values);

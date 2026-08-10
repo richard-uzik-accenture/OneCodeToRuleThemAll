@@ -12,7 +12,7 @@ Six deliverables, built on the existing Phase 1–10 Reflow app. Each is a **com
 | B | Edit an existing task (pencil affordance + shared modal) | [02-task-edit.md](02-task-edit.md) |
 | C | Tags on tasks (freeform + autocomplete) | [03-tags.md](03-tags.md) |
 | D | PWA install prompt (deferred banner + iOS sheet) | [04-pwa-install.md](archive/04-pwa-install.md) (done) |
-| E | Optional due time (today-view edit only) | [05-due-time.md](05-due-time.md) |
+| E | Optional due time (today-view edit only) | [05-due-time.md](archive/05-due-time.md) (done) |
 | F | Project-state onboarding skill (fresh-session explainer) | [06-onboarding-skill.md](06-onboarding-skill.md) |
 
 ## Confirmed product decisions (do not re-derive)

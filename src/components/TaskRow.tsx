@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import type { Task } from '../lib/tasks';
 import { useLongPressDrag } from '../hooks/useLongPressDrag';
+import { dueLabel, isPast } from '../lib/dueTime';
 import { Check } from './icons/Check';
 import { Close } from './icons/Close';
 import { Pencil } from './icons/Pencil';
+
+const DUE_TIME_TICK_MS = 60_000;
 
 interface TaskRowProps {
   task: Task;
@@ -17,6 +21,20 @@ const LONG_PRESS_MS = 350;
 
 export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit }: TaskRowProps) {
   const { dragControls, charging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useLongPressDrag();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!task.due_time) return;
+    const tick = () => setNow(new Date());
+    const interval = window.setInterval(tick, DUE_TIME_TICK_MS);
+    window.addEventListener('focus', tick);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', tick);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, [task.due_time]);
 
   return (
     <Reorder.Item
@@ -61,8 +79,13 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit }: T
       </motion.button>
       <span className="title-group">
         <span className="title">{task.title}</span>
-        {task.tags.length > 0 && (
+        {(task.tags.length > 0 || task.due_time) && (
           <span className="task-tags">
+            {task.due_time && (
+              <span className={isPast(task.due_time, now) ? 'due-chip due-chip-past' : 'due-chip'}>
+                {dueLabel(task.due_time, now)}
+              </span>
+            )}
             {task.tags.map((tag) => (
               <span key={tag} className="tag-chip">{tag}</span>
             ))}
