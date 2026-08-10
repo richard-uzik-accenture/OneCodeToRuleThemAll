@@ -47,14 +47,21 @@ Mounted once in `Today` (authenticated shell), portaled to body so the page tran
 
 ## Deliverables checklist
 
-- [ ] Real PWA icons (192/512/maskable/apple-touch) generated from the mark; manifest updated.
-- [ ] `pwa.ts` + `pwa.test.ts` (gating logic, tests first).
-- [ ] `useInstallPrompt` hook (capture, appinstalled, localStorage dedupe, deferred trigger).
-- [ ] `InstallPrompt` component — Android banner + iOS instruction sheet, brand-safe, safe-area aware, reduced-motion aware.
-- [ ] `Share` stroke icon if needed for the iOS steps.
+- [x] Real PWA icons (192/512/maskable/apple-touch) generated from the mark; manifest updated.
+- [x] `pwa.ts` (gating logic). `pwa.test.ts` skipped by request — verified manually instead.
+- [x] `useInstallPrompt` hook (capture, appinstalled, localStorage dedupe, deferred trigger).
+- [x] `InstallPrompt` component — Android banner + iOS instruction sheet, brand-safe, safe-area aware, reduced-motion aware.
+- [x] `Share` stroke icon if needed for the iOS steps.
 
 ## Test it yourself
 
 1. Chrome (Android emulation / desktop with the flag), dev mode: after the deferred trigger, the install banner appears; "install" fires the native prompt; "not now" hides it and it stays hidden on reload.
 2. iOS Safari (or WebKit device emulation): banner → sheet shows the correct Share-icon steps; "got it" dismisses permanently.
 3. Already-installed (standalone) launch: no banner. `npm test` — `pwa.test.ts` passes.
+
+## Implementation notes
+
+- Icons were generated with `sharp` (added as a devDependency for this one-off raster job — no other tooling in the repo could rasterize SVG→PNG). The maskable variant pads the mark to roughly 80% scale on a full-bleed `#171335` background so OS masking doesn't clip it.
+- `apple-touch-icon.png` is a dedicated 180×180 export; `index.html`'s `apple-touch-icon` link now points to it instead of reusing `icon-192.png`.
+- `useInstallPrompt`'s "first meaningful use" gate: app open ≥4s AND ≥1 task exists, per the plan's intent (not first paint).
+- Manual test confirmed by user on 2026-08-10; automated `pwa.test.ts` intentionally not written this pass.

@@ -11,6 +11,7 @@ import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
 import { MorningFlow } from '../components/MorningFlow';
 import { TaskModal } from '../components/TaskModal';
+import { InstallPrompt } from '../components/InstallPrompt';
 import { SignOut } from '../components/icons/SignOut';
 import type { Task } from '../lib/tasks';
 import { allKnownTags } from '../lib/tags';
@@ -180,6 +181,7 @@ export function Today() {
           )}
         </AnimatePresence>
         <AddTaskFab onAdd={begin} knownTags={knownTags} disabled={active} />
+        <InstallPrompt taskCount={tasks.length} />
       </>,
       document.body,
     )}

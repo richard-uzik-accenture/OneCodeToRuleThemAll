@@ -52,11 +52,11 @@ interface TagInputProps {
 
 ## Deliverables checklist
 
-- [ ] Migration column + type + data-fn wiring (shared foundation).
-- [ ] `tags.ts` + `tags.test.ts` (tests first, green before UI).
-- [ ] `TagInput` with chips + accessible autocomplete.
-- [ ] Read-only chips on `TaskRow`.
-- [ ] Add modal and edit modal both surface tags; morning-flow brain-dump stays title-only (tags are added later via edit, keeping capture friction-free per Product Principle 3).
+- [x] Migration column + type + data-fn wiring (shared foundation).
+- [x] `tags.ts` + `tags.test.ts` (tests first, green before UI).
+- [x] `TagInput` with chips + accessible autocomplete.
+- [x] Read-only chips on `TaskRow`.
+- [x] Add modal and edit modal both surface tags; morning-flow brain-dump stays title-only (tags are added later via edit, keeping capture friction-free per Product Principle 3).
 
 ## Test it yourself
 

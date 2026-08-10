@@ -12,3 +12,39 @@ When I open the website on my phone I should be informed and directly asked by t
 
 ## Add optional due time for tasks
 In case I need to remember a due time, I want to be able to add this field. Ideally not during the morning flow or leftover flow, but only on the today view screen via edit.
+
+
+
+
+
+
+
+
+
+------------------
+issues
+
+on phone u can still accidentally zoom and its anoying
+
+X
+
+swiing does not work good enough, make it possible to
+swipe diagonals
+
+X
+
+>
+
+focusong tag zooms in
+
+X
+
+>
+
+rerdering on phone selecting text
+
+X
+
+>
+
+tags not submited via phone (no enter available)
