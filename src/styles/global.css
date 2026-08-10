@@ -160,7 +160,7 @@ button {
 
 .task-row {
   display: grid;
-  grid-template-columns: 22px 1fr 22px;
+  grid-template-columns: 22px 1fr 22px 22px;
   align-items: center;
   gap: 12px;
   padding: 14px 13px;
@@ -185,11 +185,24 @@ button {
 .task-row .check:hover { border-color: var(--violet); color: var(--violet); background: var(--haze); }
 .task-row .check:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .task-row .title { font-size: 14px; color: var(--ink); line-height: 1.35; }
+.task-row .edit {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--dusk);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.task-row .edit:hover { color: var(--ink); background: var(--mist); }
+.task-row .edit:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .task-row .close {
   padding: 0;
   border: none;
   background: none;
-  color: var(--haze);
+  color: var(--dusk);
   font-size: 15px;
   cursor: pointer;
   display: grid;
@@ -197,12 +210,12 @@ button {
   border-radius: 50%;
   transition: color 0.15s ease, background 0.15s ease;
 }
-.task-row .close:hover { color: var(--dusk); background: var(--mist); }
+.task-row .close:hover { color: var(--ink); background: var(--mist); }
 .task-row .close:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 
 @media (min-width: 900px) {
   .task-row {
-    grid-template-columns: 24px 20px 1fr 22px;
+    grid-template-columns: 24px 20px 1fr 22px 22px;
     background: transparent;
     border-radius: 0;
     border-bottom: 1px solid var(--mist);
@@ -215,6 +228,14 @@ button {
     font-size: 11px;
     color: var(--haze);
     font-variant-numeric: tabular-nums;
+  }
+  .task-row .edit {
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .task-row:hover .edit,
+  .task-row:focus-within .edit {
+    opacity: 1;
   }
 }
 

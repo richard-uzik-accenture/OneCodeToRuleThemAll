@@ -3,17 +3,19 @@ import type { Task } from '../lib/tasks';
 import { useLongPressDrag } from '../hooks/useLongPressDrag';
 import { Check } from './icons/Check';
 import { Close } from './icons/Close';
+import { Pencil } from './icons/Pencil';
 
 interface TaskRowProps {
   task: Task;
   onComplete: (id: string) => void;
   onDrop: (id: string) => void;
   onReorderCommit: () => void;
+  onEdit?: (task: Task) => void;
 }
 
 const LONG_PRESS_MS = 350;
 
-export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowProps) {
+export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit }: TaskRowProps) {
   const { dragControls, charging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useLongPressDrag();
 
   return (
@@ -58,6 +60,17 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit }: TaskRowPr
         <Check width={12} height={12} />
       </motion.button>
       <span className="title">{task.title}</span>
+      {onEdit && (
+        <motion.button
+          aria-label="edit this"
+          onClick={() => onEdit(task)}
+          className="edit"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.88 }}
+        >
+          <Pencil width={14} height={14} />
+        </motion.button>
+      )}
       <motion.button
         aria-label="let it go"
         onClick={() => onDrop(task.id)}

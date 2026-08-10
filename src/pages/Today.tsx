@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTasks } from '../hooks/useTasks';
@@ -9,13 +10,16 @@ import { TaskList } from '../components/TaskList';
 import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
 import { MorningFlow } from '../components/MorningFlow';
+import { TaskModal } from '../components/TaskModal';
 import { SignOut } from '../components/icons/SignOut';
+import type { Task } from '../lib/tasks';
 
 export function Today() {
   const {
-    tasks, loading, error, dismissError, addTask, completeTask, dropTask,
+    tasks, loading, error, dismissError, addTask, completeTask, editTask, dropTask,
     reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const { signOut } = useAuth();
   const { pendingTitle, candidate, active, placedAt, progress, begin, decide } = useCompareInsertion({
     tasks,
@@ -123,11 +127,26 @@ export function Today() {
           onDrop={dropTask}
           onReorder={reorderTasks}
           onReorderCommit={commitReorder}
+          onEdit={setEditingTask}
           dimmed={active}
         />
       </main>
 
     </div>
+
+    <AnimatePresence>
+      {editingTask && (
+        <TaskModal
+          mode="edit"
+          initial={{ title: editingTask.title }}
+          onSubmit={(values) => {
+            editTask(editingTask.id, values);
+            setEditingTask(null);
+          }}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
+    </AnimatePresence>
 
     {/* Fixed-position overlays are portaled to body so they escape the page
         transition's transform on .screen-frame — a transformed ancestor turns

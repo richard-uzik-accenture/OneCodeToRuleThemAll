@@ -52,10 +52,10 @@ interface TaskModalProps {
 
 ## Deliverables checklist
 
-- [ ] Migration + `Task` type + `updateTask`/`editTask`/mock (shared foundation).
-- [ ] `TaskModal` extracted; `AddTaskFab` reduced to a wrapper (remove now-orphaned inline modal code — that's cleanup of *our own* change).
-- [ ] `Pencil` icon; row affordance with hover/tap/focus states.
-- [ ] Edit does not change rank and does not trigger compare.
+- [x] Migration + `Task` type + `updateTask`/`editTask`/mock (shared foundation).
+- [x] `TaskModal` extracted; `AddTaskFab` reduced to a wrapper (remove now-orphaned inline modal code — that's cleanup of *our own* change).
+- [x] `Pencil` icon; row affordance with hover/tap/focus states.
+- [x] Edit does not change rank and does not trigger compare.
 
 ## Test it yourself
 

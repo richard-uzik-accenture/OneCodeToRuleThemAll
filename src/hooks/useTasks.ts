@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, updateTaskStatus, updateTaskRanks, markTriaged, type Task } from '../lib/tasks';
+import { listActiveTasks, createTask, updateTask, updateTaskStatus, updateTaskRanks, markTriaged, type Task } from '../lib/tasks';
 import { rankBetween, renumber } from '../lib/ranking';
 import { upsertActiveTask } from '../lib/realtimeMerge';
 import { supabase } from '../lib/supabase';
@@ -88,6 +88,17 @@ export function useTasks() {
     }
   }
 
+  async function editTask(id: string, patch: { title?: string; tags?: string[]; due_time?: string | null }) {
+    const previous = tasks;
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    try {
+      await (DEV_MODE ? mockTasksApi.update(id, patch) : updateTask(id, patch));
+    } catch {
+      setTasks(previous);
+      setError("couldn't save that edit — try again");
+    }
+  }
+
   async function dropTask(id: string) {
     const previous = tasks;
     setTasks((prev) => prev.filter((t) => t.id !== id));
@@ -127,6 +138,6 @@ export function useTasks() {
 
   return {
     tasks, loading, error, dismissError: () => setError(null),
-    addTask, insertTaskAtIndex, completeTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload,
+    addTask, insertTaskAtIndex, completeTask, editTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload,
   };
 }
