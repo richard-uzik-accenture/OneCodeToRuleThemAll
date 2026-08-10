@@ -7,10 +7,14 @@ html, body, #root {
   margin: 0;
 }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 button {
@@ -42,10 +46,10 @@ button {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 18px 20px 14px;
+  padding: calc(18px + var(--safe-top)) calc(20px + var(--safe-right)) 14px calc(20px + var(--safe-left));
   border-bottom: 1px solid var(--mist);
 }
-.today-main { padding: 16px 16px 40px; }
+.today-main { padding: 16px calc(16px + var(--safe-right)) calc(40px + var(--safe-bottom)) calc(16px + var(--safe-left)); }
 
 @media (min-width: 900px) {
   .today-shell {
@@ -120,6 +124,21 @@ button {
 .rail-action:focus-visible, .rail-signout:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 
 .header-right { display: flex; align-items: center; gap: 12px; }
+.header-signout {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--dusk);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.header-signout:hover { background: var(--mist); color: var(--ink); }
+.header-signout:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .count-chip {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -204,8 +223,8 @@ button {
 
 .fab {
   position: fixed;
-  bottom: 24px;
-  right: 20px;
+  bottom: calc(24px + var(--safe-bottom));
+  right: calc(20px + var(--safe-right));
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -253,13 +272,13 @@ button {
 }
 .modal-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 16px;
   border-radius: 12px;
   border: 1px solid var(--haze);
   background: var(--mist);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   margin-bottom: 16px;
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
@@ -341,6 +360,7 @@ button {
   text-align: center;
   cursor: grab;
   box-shadow: 0 18px 36px -16px rgba(23, 19, 53, 0.22);
+  touch-action: none;
 }
 .swipe-card .label {
   font-family: var(--font-mono);
@@ -402,7 +422,7 @@ button {
   box-shadow: 0 18px 36px -14px rgba(23, 19, 53, 0.5);
 }
 
-.leftover-shell { display: grid; place-items: center; min-height: 70vh; padding: 24px; }
+.leftover-shell { display: grid; place-items: center; min-height: 70vh; min-height: 70dvh; padding: 24px; }
 .leftover-kicker {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -421,6 +441,7 @@ button {
   text-align: center;
   cursor: grab;
   box-shadow: 0 18px 36px -16px rgba(23, 19, 53, 0.22);
+  touch-action: none;
 }
 .leftover-actions { display: flex; justify-content: space-between; margin-top: 16px; width: 260px; }
 .leftover-hint {
@@ -443,13 +464,13 @@ button {
 .braindump-form { display: flex; gap: 8px; margin-top: 14px; }
 .braindump-input {
   flex: 1;
-  padding: 12px 16px;
+  padding: 11px 16px;
   border-radius: 999px;
   border: 1px solid var(--haze);
   background: var(--mist);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 16px;
 }
 .braindump-input { transition: border-color 0.15s ease; }
 .braindump-input:focus { outline: none; border-color: var(--violet-soft); }
@@ -507,7 +528,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 0;
+  padding: calc(18px + var(--safe-top)) calc(20px + var(--safe-right)) 0 calc(20px + var(--safe-left));
 }
 .flow-kicker {
   font-family: var(--font-mono);
@@ -783,13 +804,13 @@ button {
 .auth-form { display: grid; gap: 10px; }
 .auth-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 16px;
   border-radius: 12px;
   border: 1px solid var(--haze);
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   transition: border-color 0.15s ease;
 }
 .auth-input::placeholder { color: var(--dusk); }
