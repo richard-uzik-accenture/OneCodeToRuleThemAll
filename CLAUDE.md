@@ -63,3 +63,33 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+## 5. Implementation Phases
+
+**Plan files live in `docs/plans/<plan-name>/`. Completed phases move to `docs/plans/<plan-name>/archive/`.**
+
+### Naming convention
+
+Phase files are numbered: `00-overview.md`, `01-<phase-name>.md`, `02-<phase-name>.md`, …
+
+- `00-overview.md` — always the index/roadmap for that plan; archive it once all phases are done.
+- Each subsequent file is one self-contained phase with a deliverables checklist of `- [ ]` checkboxes.
+
+### What "done" means
+
+A phase is done when **every checkbox in the file is checked** (`- [x]`). At that point, move the file:
+
+```
+docs/plans/<plan-name>/<phase-file>.md  →  docs/plans/<plan-name>/archive/<phase-file>.md
+```
+
+### Current plans
+
+| Plan | Active folder | Notes |
+|---|---|---|
+| `reflow` | `docs/plans/reflow/` | v1 app — phases 09 and 10 remain |
+| `reflow-v2` | `docs/plans/reflow-v2/` | v2 features — B through F remain |
+
+Active phases (not yet archived) are whatever files remain directly in the plan folder. To know which phase you're on, list that folder — the lowest-numbered file is the current phase.
