@@ -10,6 +10,8 @@ export interface Task {
   created_at: string;
   completed_at: string | null;
   last_triaged_on: string; // ISO date, e.g. "2026-08-09"
+  tags: string[];
+  due_time: string | null; // "HH:MM" / "HH:MM:SS", null if unset
 }
 
 /** All active tasks for the signed-in user, ordered most-urgent-first. */
@@ -39,6 +41,14 @@ export async function createTask(userId: string, title: string, rank: number): P
 export async function updateTaskStatus(taskId: string, status: Task['status']): Promise<void> {
   const patch: Partial<Task> = { status };
   if (status === 'done') patch.completed_at = new Date().toISOString();
+  const { error } = await supabase.from('tasks').update(patch).eq('id', taskId);
+  if (error) throw error;
+}
+
+export async function updateTask(
+  taskId: string,
+  patch: { title?: string; tags?: string[]; due_time?: string | null },
+): Promise<void> {
   const { error } = await supabase.from('tasks').update(patch).eq('id', taskId);
   if (error) throw error;
 }

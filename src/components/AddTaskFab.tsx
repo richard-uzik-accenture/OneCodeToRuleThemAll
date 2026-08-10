@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { TaskModal } from './TaskModal';
 import { Plus } from './icons/Plus';
 
 interface AddTaskFabProps {
@@ -10,8 +10,6 @@ interface AddTaskFabProps {
 
 export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
-  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -26,12 +24,8 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, disabled]);
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const title = value.trim();
-    if (!title) return;
+  function handleSubmit({ title }: { title: string }) {
     onAdd(title);
-    setValue('');
     setOpen(false);
   }
 
@@ -41,40 +35,7 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
         <Plus width={24} height={24} />
       </button>
       <AnimatePresence>
-        {open && (
-          <motion.div
-            className="modal-scrim"
-            onClick={() => setOpen(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          >
-            <motion.form
-              className="modal-card"
-              onClick={(e) => e.stopPropagation()}
-              onSubmit={handleSubmit}
-              initial={reducedMotion ? false : { opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 320, damping: 28 } }}
-              exit={{ opacity: 0, scale: 0.97, y: 8, transition: { duration: 0.15 } }}
-            >
-              <label className="modal-label" htmlFor="add-task-input">what needs doing?</label>
-              <input
-                id="add-task-input"
-                className="modal-input"
-                type="text"
-                autoFocus
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="e.g. call the plumber back"
-              />
-              <div className="modal-actions">
-                <button type="button" className="modal-cancel" onClick={() => setOpen(false)}>cancel</button>
-                <button type="submit" className="modal-submit">add task</button>
-              </div>
-            </motion.form>
-          </motion.div>
-        )}
+        {open && <TaskModal mode="add" onSubmit={handleSubmit} onClose={() => setOpen(false)} />}
       </AnimatePresence>
     </>
   );
