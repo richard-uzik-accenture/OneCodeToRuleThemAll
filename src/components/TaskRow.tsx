@@ -59,7 +59,16 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit }: T
       >
         <Check width={12} height={12} />
       </motion.button>
-      <span className="title">{task.title}</span>
+      <span className="title-group">
+        <span className="title">{task.title}</span>
+        {task.tags.length > 0 && (
+          <span className="task-tags">
+            {task.tags.map((tag) => (
+              <span key={tag} className="tag-chip">{tag}</span>
+            ))}
+          </span>
+        )}
+      </span>
       {onEdit && (
         <motion.button
           aria-label="edit this"

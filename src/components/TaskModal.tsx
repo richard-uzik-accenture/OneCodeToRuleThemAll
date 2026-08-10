@@ -1,23 +1,26 @@
 import { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { TagInput } from './TagInput';
 
 interface TaskModalProps {
   mode: 'add' | 'edit';
-  initial?: { title: string };
-  onSubmit: (values: { title: string }) => void;
+  initial?: { title: string; tags?: string[] };
+  knownTags?: string[];
+  onSubmit: (values: { title: string; tags: string[] }) => void;
   onClose: () => void;
 }
 
-export function TaskModal({ mode, initial, onSubmit, onClose }: TaskModalProps) {
+export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: TaskModalProps) {
   const [value, setValue] = useState(initial?.title ?? '');
+  const [tags, setTags] = useState(initial?.tags ?? []);
   const reducedMotion = useReducedMotion();
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const title = value.trim();
     if (!title) return;
-    onSubmit({ title });
+    onSubmit({ title, tags });
   }
 
   return (
@@ -49,6 +52,8 @@ export function TaskModal({ mode, initial, onSubmit, onClose }: TaskModalProps) 
           onChange={(e) => setValue(e.target.value)}
           placeholder="e.g. call the plumber back"
         />
+        <label className="modal-label" htmlFor="task-modal-tags">tags</label>
+        <TagInput value={tags} known={knownTags} onChange={setTags} />
         <div className="modal-actions">
           <button type="button" className="modal-cancel" onClick={onClose}>cancel</button>
           <button type="submit" className="modal-submit">{mode === 'add' ? 'add task' : 'save'}</button>

@@ -13,6 +13,7 @@ import { MorningFlow } from '../components/MorningFlow';
 import { TaskModal } from '../components/TaskModal';
 import { SignOut } from '../components/icons/SignOut';
 import type { Task } from '../lib/tasks';
+import { allKnownTags } from '../lib/tags';
 
 export function Today() {
   const {
@@ -28,6 +29,7 @@ export function Today() {
 
   const morning = useMorningFlow({ tasks, keepLeftover, dropTask, addTask });
   const rollover = useRolloverPrompt(tasks);
+  const knownTags = allKnownTags(tasks);
 
   if (loading) return null;
 
@@ -138,7 +140,8 @@ export function Today() {
       {editingTask && (
         <TaskModal
           mode="edit"
-          initial={{ title: editingTask.title }}
+          initial={{ title: editingTask.title, tags: editingTask.tags }}
+          knownTags={knownTags}
           onSubmit={(values) => {
             editTask(editingTask.id, values);
             setEditingTask(null);
@@ -176,7 +179,7 @@ export function Today() {
             </motion.div>
           )}
         </AnimatePresence>
-        <AddTaskFab onAdd={begin} disabled={active} />
+        <AddTaskFab onAdd={begin} knownTags={knownTags} disabled={active} />
       </>,
       document.body,
     )}

@@ -44,29 +44,29 @@ export function useTasks() {
     };
   }, [session]);
 
-  async function addTask(title: string) {
+  async function addTask(title: string, tags: string[] = []) {
     if (!session) return;
     const lastRank = tasks.length > 0 ? tasks[tasks.length - 1].rank : null;
     const rank = rankBetween(lastRank, null);
     try {
       const created = DEV_MODE
-        ? await mockTasksApi.create(session.user.id, title, rank)
-        : await createTask(session.user.id, title, rank);
+        ? await mockTasksApi.create(session.user.id, title, rank, tags)
+        : await createTask(session.user.id, title, rank, tags);
       setTasks((prev) => [...prev, created]);
     } catch {
       setError("couldn't add that task — try again");
     }
   }
 
-  async function insertTaskAtIndex(title: string, index: number) {
+  async function insertTaskAtIndex(title: string, index: number, tags: string[] = []) {
     if (!session) return;
     const before = index > 0 ? tasks[index - 1].rank : null;
     const after = index < tasks.length ? tasks[index].rank : null;
     const rank = rankBetween(before, after);
     try {
       const created = DEV_MODE
-        ? await mockTasksApi.create(session.user.id, title, rank)
-        : await createTask(session.user.id, title, rank);
+        ? await mockTasksApi.create(session.user.id, title, rank, tags)
+        : await createTask(session.user.id, title, rank, tags);
       setTasks((prev) => {
         const next = [...prev];
         next.splice(index, 0, created);

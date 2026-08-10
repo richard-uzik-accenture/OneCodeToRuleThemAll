@@ -4,11 +4,12 @@ import { TaskModal } from './TaskModal';
 import { Plus } from './icons/Plus';
 
 interface AddTaskFabProps {
-  onAdd: (title: string) => void;
+  onAdd: (title: string, tags?: string[]) => void;
+  knownTags?: string[];
   disabled?: boolean;
 }
 
-export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
+export function AddTaskFab({ onAdd, knownTags = [], disabled }: AddTaskFabProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -24,8 +25,8 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, disabled]);
 
-  function handleSubmit({ title }: { title: string }) {
-    onAdd(title);
+  function handleSubmit({ title, tags }: { title: string; tags: string[] }) {
+    onAdd(title, tags);
     setOpen(false);
   }
 
@@ -35,7 +36,7 @@ export function AddTaskFab({ onAdd, disabled }: AddTaskFabProps) {
         <Plus width={24} height={24} />
       </button>
       <AnimatePresence>
-        {open && <TaskModal mode="add" onSubmit={handleSubmit} onClose={() => setOpen(false)} />}
+        {open && <TaskModal mode="add" knownTags={knownTags} onSubmit={handleSubmit} onClose={() => setOpen(false)} />}
       </AnimatePresence>
     </>
   );

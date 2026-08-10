@@ -185,6 +185,8 @@ button {
 .task-row .check:hover { border-color: var(--violet); color: var(--violet); background: var(--haze); }
 .task-row .check:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .task-row .title { font-size: 14px; color: var(--ink); line-height: 1.35; }
+.title-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.task-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .task-row .edit {
   padding: 0;
   border: none;
@@ -334,6 +336,83 @@ button {
 .modal-submit:hover { box-shadow: 0 8px 20px -8px rgba(75, 63, 143, 0.6); }
 .modal-submit:active { transform: scale(0.96); }
 .modal-submit:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--mist);
+  color: var(--dusk);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--haze);
+  border-radius: 999px;
+  padding: 3px 9px;
+  line-height: 1.4;
+}
+.tag-chip-removable { padding-right: 5px; }
+.tag-chip-remove {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--dusk);
+  cursor: pointer;
+}
+.tag-chip-remove:hover { color: var(--ink); }
+.tag-input {
+  position: relative;
+  margin-bottom: 16px;
+}
+.tag-input-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--haze);
+  background: var(--mist);
+}
+.tag-input-field:focus-within { border-color: var(--violet-soft); }
+.tag-input-text {
+  flex: 1;
+  min-width: 80px;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 4px 2px;
+}
+.tag-suggest {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background: var(--paper);
+  border: 1px solid var(--haze);
+  border-radius: 12px;
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+  box-shadow: 0 12px 24px -10px rgba(23, 19, 53, 0.25);
+}
+.tag-suggest li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tag-suggest li:hover,
+.tag-suggest li.tag-suggest-active {
+  background: var(--mist);
+}
 
 .duel-overlay {
   position: fixed;

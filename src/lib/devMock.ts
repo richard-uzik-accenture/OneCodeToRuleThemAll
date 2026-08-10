@@ -31,11 +31,11 @@ let mockTasks: Task[] = [
 
 export const mockTasksApi = {
   list: async (): Promise<Task[]> => [...mockTasks].sort((a, b) => a.rank - b.rank),
-  create: async (userId: string, title: string, rank: number): Promise<Task> => {
+  create: async (userId: string, title: string, rank: number, tags: string[] = []): Promise<Task> => {
     const created: Task = {
       id: `mock-${Date.now()}`, user_id: userId, title, note: null,
       status: 'active', rank, created_at: today, completed_at: null, last_triaged_on: today,
-      tags: [], due_time: null,
+      tags, due_time: null,
     };
     mockTasks = [...mockTasks, created];
     return created;

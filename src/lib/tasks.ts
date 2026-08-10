@@ -27,10 +27,10 @@ export async function listActiveTasks(): Promise<Task[]> {
 }
 
 /** Creates a task at the given rank. Callers compute the rank (top-level list append, or via the compare mechanic). */
-export async function createTask(userId: string, title: string, rank: number): Promise<Task> {
+export async function createTask(userId: string, title: string, rank: number, tags: string[] = []): Promise<Task> {
   const { data, error } = await supabase
     .from('tasks')
-    .insert({ user_id: userId, title, rank, status: 'active' })
+    .insert({ user_id: userId, title, rank, status: 'active', tags })
     .select()
     .single();
 
