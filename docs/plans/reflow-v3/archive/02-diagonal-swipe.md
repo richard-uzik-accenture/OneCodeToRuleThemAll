@@ -49,11 +49,11 @@ This means a quick lazy flick that only travels ~50px but moves fast still commi
 
 ## Deliverables
 
-- [ ] `CompareDuel.tsx`: change `drag="x"` → `drag`, extend `dragConstraints` to lock all four sides (`{ left:0, right:0, top:0, bottom:0 }`), keep `dragElastic={0.6}`.
-- [ ] `CompareDuel.tsx`: decide via a small helper that uses `offset.x` **and** `velocity.x` (threshold 80, velocity 500). Preserve existing `commit(true/false)` calls and exit animation.
-- [ ] `LeftoverCard.tsx`: same two changes (threshold 100, velocity 500), preserving `onResolve(true/false)`.
-- [ ] Keep `touch-action: none` on `.swipe-card` and `.leftover-card` (already set in `global.css`) — free drag needs the browser to *not* claim vertical pan, so this must stay.
-- [ ] Confirm the exit animation direction is still driven by the horizontal decision (left card flies left, right flies right) — no change to `EXIT_DISTANCE_PX` logic.
+- [x] `CompareDuel.tsx`: change `drag="x"` → `drag`, extend `dragConstraints` to lock all four sides (`{ left:0, right:0, top:0, bottom:0 }`), keep `dragElastic={0.6}`.
+- [x] `CompareDuel.tsx`: decide via a small helper that uses `offset.x` **and** `velocity.x` (threshold 80, velocity 500). Preserve existing `commit(true/false)` calls and exit animation.
+- [x] `LeftoverCard.tsx`: same two changes (threshold 100, velocity 500), preserving `onResolve(true/false)`.
+- [x] Keep `touch-action: none` on `.swipe-card` and `.leftover-card` (already set in `global.css`) — free drag needs the browser to *not* claim vertical pan, so this must stay.
+- [x] Confirm the exit animation direction is still driven by the horizontal decision (left card flies left, right flies right) — no change to `EXIT_DISTANCE_PX` logic.
 
 ## Explicitly out of scope
 

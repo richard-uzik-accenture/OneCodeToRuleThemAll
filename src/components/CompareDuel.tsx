@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { useLayoutEffect, useState } from 'react';
+import { decideSwipe } from '../lib/swipe';
 import type { Task } from '../lib/tasks';
 
 interface CompareDuelProps {
@@ -29,8 +30,9 @@ export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: Com
   }
 
   function handleDragEnd(_event: unknown, info: PanInfo) {
-    if (info.offset.x > SWIPE_THRESHOLD_PX) commit(true);
-    else if (info.offset.x < -SWIPE_THRESHOLD_PX) commit(false);
+    const decision = decideSwipe(info.offset.x, info.velocity.x, SWIPE_THRESHOLD_PX);
+    if (decision === 1) commit(true);
+    else if (decision === -1) commit(false);
   }
 
   return (
@@ -49,8 +51,8 @@ export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: Com
             <motion.div
               key={candidate.id}
               className="swipe-card"
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
+              drag
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0.6}
               onDragEnd={handleDragEnd}
               initial={{ opacity: 0, scale: 0.96 }}
