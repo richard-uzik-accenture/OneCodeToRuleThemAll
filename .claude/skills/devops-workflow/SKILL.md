@@ -67,9 +67,21 @@ its own approval in Octopus.
 
 | Env | Deployed by | Domain | Database | Purpose |
 |---|---|---|---|---|
-| DEV | Octopus, auto on every release | `dev.usereflow.app` | Separate Supabase dev project | See/test newly implemented features with sample/test data |
-| QUALITY (preprod) | Octopus, manual approval | `quality.usereflow.app` | Supabase quality project, daily dropped & reloaded from prod *(not yet implemented)* | See/test features with production-shaped data before prod |
-| PROD | Octopus, manual approval | `usereflow.app` | Separate Supabase prod project | Live production |
+| DEV | Octopus, auto on every release | `dev.usereflow.app` | Supabase project A, schema `dev` | See/test newly implemented features with sample/test data |
+| QUALITY (preprod) | Octopus, manual approval | `quality.usereflow.app` | Supabase project A, schema `preprod`, daily dropped & reloaded from prod *(not yet implemented)* | See/test features with production-shaped data before prod |
+| PROD | Octopus, manual approval | `usereflow.app` | Supabase project B, schema `public` | Live production |
+
+DEV and QUALITY share one physical Supabase project (separate Postgres schemas, not
+separate projects) — the free Supabase tier caps at 2 projects, so PROD gets its own
+project and DEV+QUALITY split a second one by schema instead of getting a third.
+Isolation is schema-level, not project-level: both schemas must be added to that
+project's Settings → API → "Exposed schemas" allowlist, and the app selects its schema
+via the Supabase client's `db.schema` option (env-var driven), not via a different
+URL/key. Auth users are shared across DEV and QUALITY since Supabase Auth is
+project-wide, not per-schema — acceptable since these hold test accounts, not real
+user data. If either environment ever needs true physical isolation (e.g. this stops
+being free-tier), split them into separate projects then; nothing else in this design
+depends on the schema-sharing being permanent.
 
 Each environment is a **separate Vercel project** (not just an environment variable
 split), because Vercel projects are what map to custom domains. All three are deployed
