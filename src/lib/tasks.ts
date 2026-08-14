@@ -14,6 +14,11 @@ export interface Task {
   due_time: string | null; // "HH:MM" / "HH:MM:SS", null if unset
 }
 
+/** Some existing rows predate the `tags` column and have it as null rather than '{}'. */
+export function normalizeTask(row: Task): Task {
+  return row.tags ? row : { ...row, tags: [] };
+}
+
 /** All active tasks for the signed-in user, ordered most-urgent-first. */
 export async function listActiveTasks(): Promise<Task[]> {
   const { data, error } = await supabase
@@ -23,7 +28,7 @@ export async function listActiveTasks(): Promise<Task[]> {
     .order('rank', { ascending: true });
 
   if (error) throw error;
-  return data as Task[];
+  return (data as Task[]).map(normalizeTask);
 }
 
 /** Creates a task at the given rank. Callers compute the rank (top-level list append, or via the compare mechanic). */

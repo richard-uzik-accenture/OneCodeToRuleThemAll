@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, updateTask, updateTaskStatus, updateTaskRanks, markTriaged, type Task } from '../lib/tasks';
+import { listActiveTasks, createTask, updateTask, updateTaskStatus, updateTaskRanks, markTriaged, normalizeTask, type Task } from '../lib/tasks';
 import { rankBetween, renumber } from '../lib/ranking';
 import { upsertActiveTask } from '../lib/realtimeMerge';
 import { supabase } from '../lib/supabase';
@@ -34,7 +34,7 @@ export function useTasks() {
         { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${session.user.id}` },
         (payload) => {
           if (payload.eventType === 'DELETE') return; // the app never deletes rows, only changes status
-          setTasks((prev) => upsertActiveTask(prev, payload.new as Task));
+          setTasks((prev) => upsertActiveTask(prev, normalizeTask(payload.new as Task)));
         }
       )
       .subscribe();
