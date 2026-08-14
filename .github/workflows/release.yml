@@ -9,6 +9,12 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  OCTOPUS_URL: ${{ secrets.OCTOPUS_SERVER_URL }}
+  OCTOPUS_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -21,24 +27,18 @@ jobs:
 
       - run: npm ci
 
-      - run: npm install -g vercel
+      - run: npm install --global vercel@latest
 
       - name: Pull Vercel project config
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Build for Vercel
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Pack release package
-        uses: OctopusDeploy/install-octopus-cli-action@v3
+      - name: Install Octopus CLI
+        uses: OctopusDeploy/install-octopus-cli-action@v4
         with:
-          version: latest
+          version: '*'
 
       - name: Create package
         run: |
@@ -49,16 +49,12 @@ jobs:
             --outFolder=./package
 
       - name: Push package to Octopus
-        uses: OctopusDeploy/push-package-action@v3
+        uses: OctopusDeploy/push-package-action@v4
         with:
-          server: ${{ secrets.OCTOPUS_SERVER_URL }}
-          api_key: ${{ secrets.OCTOPUS_API_KEY }}
           packages: ./package/reflow.1.0.${{ github.run_number }}.zip
 
       - name: Create Octopus release
-        uses: OctopusDeploy/create-release-action@v3
+        uses: OctopusDeploy/create-release-action@v4
         with:
-          server: ${{ secrets.OCTOPUS_SERVER_URL }}
-          api_key: ${{ secrets.OCTOPUS_API_KEY }}
           project: reflow
           package_version: 1.0.${{ github.run_number }}
