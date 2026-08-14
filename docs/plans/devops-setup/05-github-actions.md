@@ -45,22 +45,25 @@ Phase 4f's script).
            the checkout to the DEV project and pulls its env config, which
            `vercel build` needs present.
         5. `vercel build --prod --token=$VERCEL_TOKEN` — produces `.vercel/output/`.
-        6. Install the Octopus CLI (`OctopusDeploy/install-octopus-cli-action@v4`) —
-           still needed for `octo pack`, which stayed a CLI-only operation even
-           though push/create-release moved to pure-API actions in v3+.
-        7. `octo pack` — zip `.vercel/output/` into a package named **`reflow`**
-           (must match the package ID referenced in Octopus's deploy step from
-           Phase 4f), version `1.0.${{ github.run_number }}`.
-        8. `OctopusDeploy/push-package-action@v4` — upload that package to the
-           Octopus built-in repository. As of v3+ this talks to the Octopus API
-           directly, no CLI dependency.
-        9. `OctopusDeploy/create-release-action@v4` — create the release in the
+        6. `OctopusDeploy/create-zip-package-action@v4` — zips `.vercel/output/`
+           into a package named **`reflow`** (must match the package ID referenced
+           in Octopus's deploy step from Phase 4f), version
+           `1.0.${{ github.run_number }}`. **Not** `octo pack` — that's the legacy,
+           deprecated Octopus CLI command (binary `octo`); this dedicated action is
+           the modern equivalent and avoids needing any CLI installed at all. First
+           attempt used `octo pack` via `install-octopus-cli-action`, which installs
+           the *new* CLI (binary `octopus`, no `octo` command) — caused a `command not
+           found` failure. Fixed by switching to this action.
+        7. `OctopusDeploy/push-package-action@v4` — upload that package (referenced
+           via the previous step's `package_file_path` output) to the Octopus
+           built-in repository. Talks to the Octopus API directly, no CLI dependency.
+        8. `OctopusDeploy/create-release-action@v4` — create the release in the
            `reflow` Octopus project, which triggers Octopus's lifecycle: auto-deploys
-           to `dev`, waits for manual approval before `preprod`/`prod`. Also API-based
-           as of v3+, no CLI dependency.
-      - Verified against the actual action READMEs (2026-08): both push/create-release
-        actions read `OCTOPUS_URL`/`OCTOPUS_API_KEY` from job-level `env:`, not `with:`
-        inputs — see the committed workflow for the exact shape.
+           to `dev`, waits for manual approval before `preprod`/`prod`. Also API-based,
+           no CLI dependency.
+      - Verified against the actual action READMEs (2026-08): push/create-release/
+        create-zip-package actions read `OCTOPUS_URL`/`OCTOPUS_API_KEY` from job-level
+        `env:`, not `with:` inputs — see the committed workflow for the exact shape.
 - [ ] Verify: pushing to `main` produces a GitHub Actions run that ends in a new
       Octopus release, visible in the Octopus dashboard, with the `dev` deployment
       already underway automatically. Confirm the package Octopus received actually
