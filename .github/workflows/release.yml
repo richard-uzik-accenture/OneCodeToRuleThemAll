@@ -35,23 +35,21 @@ jobs:
       - name: Build for Vercel
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Install Octopus CLI
-        uses: OctopusDeploy/install-octopus-cli-action@v4
-        with:
-          version: '*'
-
       - name: Create package
-        run: |
-          octo pack \
-            --id=reflow \
-            --version=1.0.${{ github.run_number }} \
-            --basePath=.vercel/output \
-            --outFolder=./package
+        id: create_package
+        uses: OctopusDeploy/create-zip-package-action@v4
+        with:
+          package_id: reflow
+          version: 1.0.${{ github.run_number }}
+          base_path: .vercel/output
+          output_folder: ./package
+          files: |
+            **/*.*
 
       - name: Push package to Octopus
         uses: OctopusDeploy/push-package-action@v4
         with:
-          packages: ./package/reflow.1.0.${{ github.run_number }}.zip
+          packages: ${{ steps.create_package.outputs.package_file_path }}
 
       - name: Create Octopus release
         uses: OctopusDeploy/create-release-action@v4
