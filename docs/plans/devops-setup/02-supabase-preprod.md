@@ -16,19 +16,23 @@ data. QUALITY gets a new `preprod` schema in that same project.
       `public`) and passes it to `createClient`'s `db.schema` option. `.env.example`
       documents the new variable. Committed straight to `dev` (small, config-driven,
       not treated as a feature-branch-worthy change per user direction).
-- [ ] Run `supabase/migrations/preprod_schema_init.sql` by hand in the SQL Editor of
-      the existing dev Supabase project. It creates a `preprod` schema with the same
-      `tasks` table/RLS policy shape as `public` (final-state equivalent of migrations
-      0001-0003, not a replay of history).
-      Verify: `preprod.tasks` exists alongside `public.tasks` in the table editor,
-      with RLS enabled and the same policy.
-- [ ] Add `preprod` to Project Settings → API → "Exposed schemas" (alongside the
-      existing `public`). Without this, PostgREST rejects any request against the
-      `preprod` schema even though it exists.
-      Verify: a request from a client configured with `db.schema: 'preprod'`
-      succeeds instead of erroring on an unexposed schema.
-- [ ] One-time copy of prod data into the new `preprod` schema (not automated — see
-      note below).
+- [x] Ran `supabase/migrations/preprod_schema_init.sql` by hand in the SQL Editor of
+      the existing dev Supabase project. `preprod.tasks` confirmed to exist alongside
+      `public.tasks` (verified via `information_schema.tables`), RLS enabled.
+- [x] Added `preprod` to Project Settings → Data API → "Exposed schemas" (alongside
+      the existing `public`).
+- [x] Deferred: one-time copy of prod data into `preprod`. Attempted via a generated
+      `insert into preprod.tasks (...)` script from prod's `public.tasks`, but prod's
+      `user_id` values don't exist in the dev project's `auth.users` (separate
+      projects, separate auth), so every row would fail the FK constraint. Decision:
+      leave `preprod.tasks` empty for now; seed a few rows manually (via Table Editor,
+      using a real dev-project test user's id) once QUALITY is actually being used
+      for testing, not before.
+- [ ] Separately noted, not part of this phase: prod's `public.tasks` is missing the
+      `tags`/`due_time` columns that migrations `0002_task_fields.sql` and
+      `0003_align_task_schema.sql` add — prod is behind the migrations already in the
+      repo. Worth fixing since the app sends `tags` on every insert. Flag for a
+      follow-up, separate from devops-setup.
 - [ ] Record: the dev project's URL + anon key are reused for both DEV and QUALITY
       Vercel env vars in Phase 3 (same URL/key, different `VITE_SUPABASE_SCHEMA`).
       Only PROD gets a distinct Supabase URL/key.
