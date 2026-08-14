@@ -24,27 +24,14 @@ In case I need to remember a due time, I want to be able to add this field. Idea
 ------------------
 issues
 
-on phone u can still accidentally zoom and its anoying
+on phone u can still accidentally zoom and its anoying becuase if you zoom with 2 fingers, then you need to unzoom, maybe better would to prevent zooming? What is common practice on PWA?
 
-X
+swiping does not work good enough, make it possible to swipe diagonals. Here the problem is that if you swiping either with mouse or finger, you have to move in horizontal lines. but this is not how people hold their phones. if you do it with thumb you tend to go in curved lines. is it possible to allow swiping in non straight lines for both directions to allow user to do lazy swiping?
 
-swiing does not work good enough, make it possible to
-swipe diagonals
+when editing task, focus on tag zooms in on phone -> again annoying you need ot unzoom
 
-X
+rerdering on phone and desktop selecting text is anoying and we hsould prevent text selectio on the list of items
 
->
+drag and drop reorder states when task is picked and not dropped yet is buged after u drop task, its stil visually as when it was in "movement"
 
-focusong tag zooms in
-
-X
-
->
-
-rerdering on phone selecting text
-
-X
-
->
-
-tags not submited via phone (no enter available)
+tags not submited via phone easily, you have to manually click on enter button on keyboard which almost never do, is there a way to improve submiting tags on phone devices?
