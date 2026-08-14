@@ -1,6 +1,6 @@
 ---
 name: devops-workflow
-description: Branching and deployment workflow for this repo — feature/dev/preprod/main branch flow, DEV/QUALITY/PROD Vercel environments, and GitHub Actions CI/CD with staged approvals. Use when merging branches, promoting code between environments, deploying, or setting up/checking the CI/CD pipeline and environment protection rules.
+description: Branching and deployment workflow for this repo — feature/dev/main branch flow, DEV/QUALITY/PROD Vercel environments orchestrated by Octopus Deploy, and the GitHub Actions build that hands releases to Octopus. Use when merging branches, promoting code between environments, deploying, or setting up/checking the CI/CD pipeline and Octopus project.
 ---
 
 # DevOps Workflow
@@ -16,10 +16,14 @@ Branches, in promotion order:
 
 ```
 feature/*  ─┐
-fix/*       ├─▶  dev  ─▶  preprod  ─▶  main
+fix/*       ├─▶  dev  ──(PR + review)──▶  main
 docs/*      │
 refactor/*  ─┘
 ```
+
+There is **no `preprod` branch**. Environment promotion (dev → preprod → prod) happens
+entirely inside Octopus Deploy, from a single build produced on `main` — it is not
+modeled as separate git branches. `main` is the only branch that produces a release.
 
 - **Feature branches**: `type/short-description`
   - `type` ∈ `feature`, `fix`, `docs`, `refactor`
@@ -27,20 +31,19 @@ refactor/*  ─┘
     `feature/morning-flow-new-step`)
   - When work is driven by an implementation plan under `docs/plans/<plan-name>/`
     (see root `CLAUDE.md`), each **phase** of the plan gets its own feature branch.
-- **`dev`** — source branch for the DEV deploy pipeline.
-- **`preprod`** — source branch for the QUALITY deploy pipeline. Exists only because
-  Vercel requires a distinct branch per project/environment; code on `preprod` is
-  otherwise identical to what was last promoted from `dev`.
-- **`main`** — source branch for the PROD deploy pipeline. Protected: no direct
-  pushes, ever.
+- **`dev`** — integration branch. Feature branches land here first; this is also
+  deployed live to the DEV environment so features can be seen/tested with sample
+  data before they're promoted.
+- **`main`** — source of truth. Protected: no direct pushes, ever. Every push to
+  `main` triggers a GitHub Actions build that creates an Octopus release; that one
+  release is what flows through dev → preprod → prod inside Octopus.
 
 ### Who can merge what
 
 | Merge | Who | Confirmation |
 |---|---|---|
 | `feature/*` → `dev` | AI or human | AI must ask for explicit confirmation before merging |
-| `dev` → `preprod` | AI or human | AI must ask for explicit confirmation before merging |
-| `preprod` → `main` | **Human only** | AI must never do this merge, even if asked to "just do it" — refuse and explain, point the human at the merge |
+| `dev` → `main` (via PR) | **Human only** | AI must never merge this PR, even if asked to "just do it" — refuse and explain, point the human at the merge. AI may open the PR. |
 
 Additional rules:
 - Creating/pushing to a new `feature/*` (or `fix/*`, `docs/*`, `refactor/*`) branch
@@ -51,81 +54,101 @@ Additional rules:
   about.
 - A merge into `dev` should have been reviewed/tested by a human before landing —
   don't treat "AI can merge" as "AI should merge unreviewed work."
+- The `dev` → `main` PR is where code review happens. Merging it is the trigger for a
+  real release, so it carries the same weight the old `preprod` → `main` merge did —
+  human-only, no exceptions.
 
-This git-merge policy is independent from the GitHub Actions pipeline approval gates
-below — merging into `preprod` does not itself deploy to QUALITY; it queues a pipeline
-run that still needs its own approval (see below).
+This git-merge policy is independent of Octopus's own deployment approvals below —
+merging `dev` → `main` only creates a release and auto-deploys it to the DEV
+*environment* inside Octopus; promoting that same release to preprod/prod still needs
+its own approval in Octopus.
 
 ## Environments
 
-| Env | Branch | Domain | Database | Purpose |
+| Env | Deployed by | Domain | Database | Purpose |
 |---|---|---|---|---|
-| DEV | `dev` | `dev.usereflow.app` | Separate Supabase dev project | See/test newly implemented features with sample/test data |
-| QUALITY | `preprod` | `quality.usereflow.app` | Supabase quality project, daily dropped & reloaded from prod *(not yet implemented)* | See/test features with production-shaped data before prod |
-| PROD | `main` | `usereflow.app` | Separate Supabase prod project | Live production |
+| DEV | Octopus, auto on every release | `dev.usereflow.app` | Separate Supabase dev project | See/test newly implemented features with sample/test data |
+| QUALITY (preprod) | Octopus, manual approval | `quality.usereflow.app` | Supabase quality project, daily dropped & reloaded from prod *(not yet implemented)* | See/test features with production-shaped data before prod |
+| PROD | Octopus, manual approval | `usereflow.app` | Separate Supabase prod project | Live production |
 
 Each environment is a **separate Vercel project** (not just an environment variable
-split), because Vercel projects are what map to custom domains and each needs its own
-production branch.
+split), because Vercel projects are what map to custom domains. All three are deployed
+from the *same build artifact* — Octopus targets each project's Vercel API/CLI
+credentials per environment, it does not rely on Vercel's own git-branch-to-project
+mapping. Vercel's automatic git deployments should be **disabled** on all three
+projects once Octopus is wired up, so there is exactly one deploy path per
+environment, not two racing ones.
 
-Deploy triggers per environment:
-- **DEV** — push to `dev`, OR manual GitHub Actions dispatch, OR Vercel UI redeploy button.
-- **QUALITY** — merge/push to `preprod`, OR manual GitHub Actions dispatch, OR Vercel UI redeploy button.
-- **PROD** — manual GitHub Actions dispatch only, OR Vercel UI redeploy button (never a bare push trigger).
+Deploy triggers per environment, all orchestrated by Octopus after a release exists:
+- **DEV** — automatic, as soon as the release is created.
+- **QUALITY** — manual approval inside Octopus (human only).
+- **PROD** — manual approval inside Octopus (human only), typically after verifying
+  QUALITY.
 
 ## CI/CD pipeline design
 
-**One pipeline, staged, not one-pipeline-per-environment.** Every merge to `dev`
-creates a single GitHub Actions workflow run with sequential jobs:
+**GitHub Actions builds and hands off; Octopus orchestrates the promotion.** These are
+two separate systems with a narrow handoff between them — don't conflate "the
+pipeline" as one GitHub Actions concept, since most of the promotion logic (dev →
+preprod → prod, approvals) lives in Octopus, not in workflow YAML.
 
 ```
-deploy-dev  ──▶  deploy-quality (needs: deploy-dev)  ──▶  deploy-prod (needs: deploy-quality)
-(auto)            (human approval gate)                     (human approval gate)
+push to main
+   └─▶ GitHub Actions: build
+          └─▶ octo pack        (package build output)
+          └─▶ octo push        (upload package to Octopus built-in repo)
+          └─▶ octo create-release
+                 └─▶ Octopus: deploy to dev        (auto)
+                 └─▶ Octopus: deploy to preprod     (await approval in Octopus)
+                 └─▶ Octopus: deploy to prod        (await approval in Octopus)
 ```
 
-This is implemented with **GitHub Environments + required reviewers**, not with
-Azure-DevOps-style "pick which release to promote":
-- `dev` job targets a GitHub Environment named `dev` with **no required reviewers** →
-  deploys immediately on merge.
-- `quality` job targets a GitHub Environment named `quality` with **required
-  reviewers** (human only) → the workflow run pauses at this job and shows a "Review
-  deployments" button until a human approves.
-- `prod` job targets a GitHub Environment named `prod` with **required reviewers**
-  (human only) → same pause/approve behavior.
-- There is no per-environment separate release list to pick from like Azure DevOps;
-  superseded/stale runs on the same branch are handled via a `concurrency:` group so a
-  newer push cancels the older in-flight run instead of leaving multiple pending
-  approvals.
+- GitHub Actions' job ends at `create-release`. It does not itself deploy to any
+  environment or gate on approvals — that would duplicate what Octopus already does.
+- Octopus owns: the environments (`dev`/`preprod`/`prod`), the lifecycle (which
+  environments a release must pass through and in what order), the deploy step per
+  environment (calling the Vercel API/CLI with that environment's project
+  credentials, sourced from Octopus variable sets scoped per-environment), and the
+  manual intervention/approval steps for preprod and prod.
+- Approvals are **Octopus's built-in manual intervention step**, not GitHub
+  Environments + required reviewers. GitHub Environments are not part of this
+  pipeline's approval model anymore.
 
-Setup prerequisites (one-time, likely manual via GitHub UI or `gh api`, verify before
-assuming already done):
-1. Create GitHub Environments `dev`, `quality`, `prod` under repo Settings →
-   Environments.
-2. Add required reviewers (human accounts/team) to `quality` and `prod` only.
-3. Optionally restrict each environment to deployments from its corresponding branch
-   (`dev`/`preprod`/`main`).
-4. Note: environment protection rules with required reviewers require the repo to be
-   public, or private on GitHub Team/Enterprise — confirm the repo's plan before
-   relying on this.
+Setup prerequisites (one-time, verify before assuming already done):
+1. An Octopus Deploy instance (Cloud or self-hosted) — does not exist yet, see the
+   setup plan below.
+2. An Octopus **project** with three environments (`dev`, `preprod`, `prod`) and a
+   lifecycle enforcing that order, one for this app.
+3. A deploy process/step template per environment that deploys the packaged build to
+   that environment's Vercel project (via Vercel CLI or API), reading that
+   environment's Supabase/Vercel credentials from Octopus-scoped variables.
+4. Manual intervention steps attached to the preprod and prod deploy steps, restricted
+   to the human's Octopus user/team.
+5. An Octopus API key and server URL stored as **GitHub Actions secrets** (repo-level
+   is fine here — Octopus itself is the approval boundary, not GitHub Environments).
+6. `octopus.com/GitHubActions` actions (`create-release`, `push-package`, or the
+   combined `octopusdeploy/push-package-action` / `deploy-release-action`) wired into
+   `.github/workflows/*.yml` for the `main` push trigger.
 
-When asked to scaffold this, the AI may author/update
-`.github/workflows/*.yml` and `vercel.json` to match this design — check what already
-exists first and show the diff/plan before writing, per this repo's normal "surgical
-changes" and "confirm before risky/hard-to-reverse actions" rules (root `CLAUDE.md`).
-GitHub Environment creation and reviewer assignment itself typically requires repo
-admin UI access; the AI can do this via `gh api` if authorized, but should confirm
-first since it changes shared repo configuration.
+When asked to scaffold this, the AI may author/update `.github/workflows/*.yml` to
+match this design — check what already exists first and show the diff/plan before
+writing, per this repo's normal "surgical changes" and "confirm before risky/hard-to-
+reverse actions" rules (root `CLAUDE.md`). Creating the Octopus project, environments,
+lifecycle, and deploy steps happens in the Octopus UI/API and typically needs the
+human directly — the AI can help via Octopus's CLI/API if authorized, but should
+confirm first since it's shared infrastructure configuration.
 
 ## Guardrails summary
 
-- Never merge `preprod` → `main`. That's human-only, no exceptions.
-- Always ask for confirmation before merging `feature/*` → `dev` or `dev` →
-  `preprod`.
+- Never merge the `dev` → `main` PR. That's human-only, no exceptions — it's what
+  creates a real release.
+- Always ask for confirmation before merging `feature/*` → `dev`.
 - Never push directly to `main`.
 - Never force-push or delete a branch without explicit confirmation (auto-delete of
   merged feature branches by GitHub itself is expected and needs no confirmation).
-- Never trigger/approve a QUALITY or PROD deployment gate — those approvals are
-  human-only by design (GitHub required reviewers enforce this technically; don't try
-  to work around it via `gh api` or workflow_dispatch tricks).
-- Treat any change to `.github/workflows/*`, environment protection rules, or
-  `vercel.json` as infra changes — describe the change and confirm before applying.
+- Never trigger/approve an Octopus preprod or prod deployment — those approvals are
+  human-only by design (Octopus manual intervention enforces this technically; don't
+  try to work around it via the Octopus API or CLI).
+- Treat any change to `.github/workflows/*`, the Octopus project/environments/
+  lifecycle/deploy process, or Vercel project settings as infra changes — describe the
+  change and confirm before applying.

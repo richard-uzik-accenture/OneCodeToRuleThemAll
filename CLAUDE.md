@@ -91,5 +91,6 @@ docs/plans/<plan-name>/<phase-file>.md  →  docs/plans/<plan-name>/archive/<pha
 |---|---|---|
 | `reflow` | `docs/plans/reflow/` | v1 app — phases 09 and 10 remain |
 | `reflow-v2` | `docs/plans/reflow-v2/` | v2 features — B through F remain |
+| `devops-setup` | `docs/plans/devops-setup/` | DEV/QUALITY/PROD via Octopus Deploy — see `devops-workflow` skill |
 
 Active phases (not yet archived) are whatever files remain directly in the plan folder. To know which phase you're on, list that folder — the lowest-numbered file is the current phase.
