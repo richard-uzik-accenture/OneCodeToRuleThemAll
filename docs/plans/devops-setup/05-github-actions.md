@@ -21,19 +21,12 @@ Phase 4f's script).
 
 ## Deliverables
 
-- [ ] Add these as **GitHub Actions repo secrets** (Settings → Secrets and variables
-      → Actions):
-      - `OCTOPUS_SERVER_URL` — the Octopus Cloud instance URL from Phase 4.
-      - `OCTOPUS_API_KEY` — an Octopus API key for a service account (Octopus →
-        profile → "My API Keys" → generate one; scope it to this project if Octopus
-        supports scoped keys).
-      - `VERCEL_TOKEN` — a Vercel token (can reuse the one already rotated into
-        Octopus's `VercelToken` variable, or mint a separate one for CI — separate is
-        slightly cleaner for revocation, but either works).
-      - `VERCEL_ORG_ID` — the Team/Org ID (same value as Octopus's `VercelOrgId`).
-      - `VERCEL_PROJECT_ID` — the **DEV** project's ID (used only to make `vercel
-        build` runnable; irrelevant to which environment ends up deployed).
-- [ ] Write `.github/workflows/release.yml`:
+- [x] Added 5 **GitHub Actions repo secrets** (Settings → Secrets and variables →
+      Actions): `OCTOPUS_SERVER_URL`, `OCTOPUS_API_KEY` (Full access, 1yr expiry),
+      `VERCEL_TOKEN` (rotated), `VERCEL_ORG_ID` (Team ID), `VERCEL_PROJECT_ID` (DEV
+      project's ID — only used to make `vercel build` runnable, irrelevant to which
+      environment ends up deployed).
+- [x] Wrote `.github/workflows/release.yml`:
       - Trigger: `on: push` to `main`, plus `workflow_dispatch` for manual re-runs.
       - `concurrency:` group keyed on the ref, so a superseding push cancels a
         stale in-flight run instead of leaving two releases racing.
@@ -64,15 +57,47 @@ Phase 4f's script).
       - Verified against the actual action READMEs (2026-08): push/create-release/
         create-zip-package actions read `OCTOPUS_URL`/`OCTOPUS_API_KEY` from job-level
         `env:`, not `with:` inputs — see the committed workflow for the exact shape.
-- [ ] Verify: pushing to `main` produces a GitHub Actions run that ends in a new
-      Octopus release, visible in the Octopus dashboard, with the `dev` deployment
-      already underway automatically. Confirm the package Octopus received actually
-      contains a working `.vercel/output` (deploy to dev succeeding is the real
-      proof).
+      - Also needed `OCTOPUS_SPACE: Default` in job-level `env:` — Octopus requires
+        an explicit space, and push/create-release both failed with "Octopus space
+        name is required" before this was added. Confirmed via the dashboard that
+        the instance's space is literally named "Default" (not a placeholder — that
+        really is this Octopus Cloud instance's only/default space name).
+- [x] Verified: pushing to `main` (via `dev` → `main` PRs, three iterations to debug
+      real failures below) produces a GitHub Actions run that reaches
+      `create-release-action`. Package creation and push to Octopus both succeed
+      (confirmed a real `reflow.1.0.3` package landed in Octopus's built-in repo).
+      **Not yet verified**: an actual successful release/deploy to `dev` — blocked by
+      the open error below.
+
+## Debugging history (so the fixes aren't rediscovered from scratch)
+
+Three real failures hit and fixed, in order:
+1. `octo: command not found` — used the legacy/deprecated `octo pack` CLI command
+   after installing the *new* Octopus CLI (binary `octopus`, no `octo`). Fixed by
+   switching packaging to `OctopusDeploy/create-zip-package-action@v4` (no CLI
+   install needed at all).
+2. `Error: The Octopus space name is required` — added `OCTOPUS_SPACE: Default` to
+   job-level `env:`.
+3. **Still open**, hit on the `create-release-action` step:
+   ```
+   Error: There are no viable release plans in any channels using the provided
+   arguments. The following release plans were considered:
+   Channel: 'Default' (this is the default channel)
+   ```
+   Leading hypothesis (unverified): the Octopus deploy process has no finished step
+   that actually consumes the `reflow` package — see Phase 4's "paused" deploy step.
+   A release plan needs at least one step per channel that references the package
+   being released; with that step incomplete/unsaved, Octopus may have nothing to
+   build a plan around. **Next session: finish Phase 4's paused step first, then
+   re-trigger this workflow (push a trivial change to `main`, or use
+   `workflow_dispatch`) and see if this exact error clears before investigating
+   further.** If it doesn't clear, look at the project's Channels page (Deployments →
+   [reflow project] → Channels) to confirm the "Default" channel's version range/step
+   rules actually match what's being released.
 
 ## Then, unblocks Phase 4f
 
-Once this workflow has run at least once, a real `reflow` package exists in
-Octopus's built-in repository — go back to the paused "Deploy to Vercel" step in the
-Octopus project (Phase 4f) and finish adding the package reference; it can now
-resolve the package ID.
+A real `reflow` package now exists in Octopus's built-in repository — Phase 4's
+paused "Deploy to Vercel" step's package reference should now resolve. Go finish that
+step (see Phase 4's file for exact instructions), then come back and re-run this
+workflow to see if the release-plan error above clears.

@@ -4,12 +4,38 @@ Finishes the three-environment pipeline described in the `devops-workflow` skill
 DEV/QUALITY/PROD, each a separate Vercel project with its own Supabase database,
 promoted by **Octopus Deploy** from a single build produced on `main`.
 
-## Current state (as of 2026-08-14)
+## Current state (as of 2026-08-15)
 
-- One Vercel project, currently deploying from `main`.
-- One Supabase dev project, one Supabase prod project. No preprod/quality project.
-- No `dev` branch. No GitHub Actions workflows. No Octopus instance.
-- Repo: `richard-uzik-accenture/OneCodeToRuleThemAll`.
+- Repo `richard-uzik-accenture/OneCodeToRuleThemAll` is **public** (needed for
+  branch protection to enforce on the free GitHub plan). `main` requires PRs to
+  merge (0 required approvals — solo maintainer can't self-approve).
+- Branches: `dev` and `main` exist, `feature/combat-screen-polish` (pre-dates `dev`,
+  still needs retargeting — Phase 6) is the only other one. No `preprod` branch
+  (intentional — see skill).
+- Supabase: one project holds both DEV (`public` schema) and QUALITY (`preprod`
+  schema, empty — data copy deferred), one separate project holds PROD. **PROD is
+  missing migrations 0002/0003** (`tags`/`due_time` columns) — flagged, unfixed.
+- Vercel: three projects exist (DEV/QUALITY/PROD), domains set, git auto-deploy
+  disabled ("Don't build anything"), env vars set on all three.
+- Octopus Cloud: instance provisioned, environments/lifecycle/project/variables all
+  built. **The Vercel deploy step is unfinished** — paused mid-configuration, see
+  Phase 4's file for exact resume instructions.
+- GitHub Actions: `.github/workflows/release.yml` exists, triggers on push to
+  `main`, successfully builds+packages+pushes to Octopus. **Release creation
+  currently fails** with a "no viable release plans" error — see Phase 5's file,
+  likely caused by the same unfinished Octopus deploy step.
+
+## Resume here next session
+
+1. Finish Octopus's paused "Deploy to Vercel" step — Phase 4's file has the exact
+   script and config to paste in.
+2. Add the manual intervention approval steps for `preprod`/`prod` (also not done
+   yet).
+3. Re-trigger the GitHub Actions workflow (push to `main`, or `workflow_dispatch`)
+   and see if the "no viable release plans" error clears.
+4. If it does: watch the `dev` deploy actually happen, confirm `dev.usereflow.app`
+   serves the real app. If it doesn't clear: check the `reflow` project's Channels
+   page in Octopus.
 
 ## Target state
 
