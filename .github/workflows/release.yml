@@ -14,6 +14,7 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   OCTOPUS_URL: ${{ secrets.OCTOPUS_SERVER_URL }}
   OCTOPUS_API_KEY: ${{ secrets.OCTOPUS_API_KEY }}
+  OCTOPUS_SPACE: Default
 
 jobs:
   build-and-release:
