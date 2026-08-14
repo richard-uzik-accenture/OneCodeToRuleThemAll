@@ -53,7 +53,8 @@ export function useTasks() {
         ? await mockTasksApi.create(session.user.id, title, rank, tags)
         : await createTask(session.user.id, title, rank, tags);
       setTasks((prev) => [...prev, created]);
-    } catch {
+    } catch (err) {
+      console.error('addTask failed', { rank, tags }, err);
       setError("couldn't add that task — try again");
     }
   }
@@ -72,7 +73,8 @@ export function useTasks() {
         next.splice(index, 0, created);
         return next;
       });
-    } catch {
+    } catch (err) {
+      console.error('insertTaskAtIndex failed', { index, before, after, rank, tags }, err);
       setError("couldn't place that task — try again");
     }
   }

@@ -157,9 +157,11 @@ export function Today() {
         position:fixed into position:absolute, which would misplace them. */}
     {createPortal(
       <>
-        {active && candidate && pendingTitle && (
-          <CompareDuel candidate={candidate} newTaskTitle={pendingTitle} progress={progress} onDecide={decide} />
-        )}
+        <AnimatePresence>
+          {active && candidate && pendingTitle && (
+            <CompareDuel candidate={candidate} newTaskTitle={pendingTitle} progress={progress} onDecide={decide} />
+          )}
+        </AnimatePresence>
         <AnimatePresence>
           {placedAt && (
             <motion.div

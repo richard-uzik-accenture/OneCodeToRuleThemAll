@@ -1,6 +1,8 @@
-import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
-import { useLayoutEffect, useState } from 'react';
+import { animate, motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { decideSwipe } from '../lib/swipe';
+import { reflowSpring } from '../lib/transitions';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { Task } from '../lib/tasks';
 
 interface CompareDuelProps {
@@ -11,76 +13,57 @@ interface CompareDuelProps {
 }
 
 const SWIPE_THRESHOLD_PX = 80;
-const EXIT_DISTANCE_PX = 420;
-const EXIT_DURATION_S = 0.175;
+/** How many remaining comparisons are drawn as peeking cards behind the live one. */
+const MAX_GHOSTS = 2;
+
+type CommitFn = (direction: 1 | -1, velocityX?: number, velocityY?: number) => void;
 
 export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: CompareDuelProps) {
-  const [exitDirection, setExitDirection] = useState<1 | -1 | null>(null);
+  const reducedMotion = useReducedMotion();
+  // The action buttons live outside the card, so the live card publishes its
+  // commit function here — pressing a button plays the same fling as a swipe.
+  const commitRef = useRef<CommitFn | null>(null);
 
-  // This component instance is reused across comparisons — only `candidate`
-  // changes. Reset the committed-exit state for each new comparison so the
-  // draggable card reappears (otherwise it stays hidden after the first swipe).
-  useLayoutEffect(() => {
-    setExitDirection(null);
-  }, [candidate.id]);
-
-  function commit(newTaskWon: boolean) {
-    setExitDirection(newTaskWon ? 1 : -1);
-    window.setTimeout(() => onDecide(newTaskWon), EXIT_DURATION_S * 1000);
-  }
-
-  function handleDragEnd(_event: unknown, info: PanInfo) {
-    const decision = decideSwipe(info.offset.x, info.velocity.x, SWIPE_THRESHOLD_PX);
-    if (decision === 1) commit(true);
-    else if (decision === -1) commit(false);
-  }
+  const ghosts = Math.min(Math.max(progress.total - progress.done - 1, 0), MAX_GHOSTS);
 
   return (
-    <div className="duel-overlay">
-      <div className="duel-headline">
-        <div className="duel-kicker">new task landed</div>
-        <h2 className="duel-question">
-          more urgent than<br />
-          <span className="ref-title">"{candidate.title}"</span>?
-        </h2>
-      </div>
+    <motion.div
+      className="duel-screen"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0, transition: reflowSpring }}
+      exit={{ opacity: 0, transition: { duration: 0.16, ease: 'easeIn' } }}
+    >
+      <h2 className="duel-question">
+        more urgent than <span className="ref-title">"{candidate.title}"</span>?
+      </h2>
 
-      <div className="swipe-card-slot">
-        <AnimatePresence>
-          {exitDirection === null && (
+      <div className="duel-stage">
+        <div className="duel-stack">
+          {Array.from({ length: ghosts }, (_, i) => (
             <motion.div
-              key={candidate.id}
-              className="swipe-card"
-              drag
-              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              dragElastic={0.6}
-              onDragEnd={handleDragEnd}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              whileDrag={{ scale: 1.03, boxShadow: '0 24px 44px -16px rgba(23, 19, 53, 0.3)' }}
-              transition={{ duration: EXIT_DURATION_S }}
-            >
-              <div className="label">just added — drag me</div>
-              <div className="title">{newTaskTitle}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {exitDirection !== null && (
-          <motion.div
-            className="swipe-card swipe-card-committed"
-            initial={{ opacity: 1, x: 0 }}
-            animate={{ opacity: 0, x: exitDirection * EXIT_DISTANCE_PX }}
-            transition={{ duration: EXIT_DURATION_S, ease: 'easeIn' }}
-          >
-            <div className="label">just added — drag me</div>
-            <div className="title">{newTaskTitle}</div>
-          </motion.div>
-        )}
+              key={`ghost-${i}`}
+              className="duel-ghost"
+              animate={{ scale: 1 - 0.04 * (i + 1), y: 10 * (i + 1) }}
+              transition={reducedMotion ? { duration: 0 } : reflowSpring}
+            />
+          ))}
+
+          {/* Keyed per comparison: every card is a fresh instance owning its own
+              drag position, so a committed card can never leave a stale offset
+              behind for the next one. */}
+          <DuelCard
+            key={`${candidate.id}:${progress.done}`}
+            title={newTaskTitle}
+            reducedMotion={reducedMotion}
+            commitRef={commitRef}
+            onResolved={onDecide}
+          />
+        </div>
       </div>
 
-      <div className="swipe-hints">
-        <button className="swipe-hint less" onClick={() => commit(false)}>← no, later</button>
-        <button className="swipe-hint more" onClick={() => commit(true)}>yes, sooner →</button>
+      <div className="duel-actions">
+        <button className="duel-action later" onClick={() => commitRef.current?.(-1)}>← later</button>
+        <button className="duel-action sooner" onClick={() => commitRef.current?.(1)}>sooner →</button>
       </div>
 
       <div className="duel-progress">
@@ -88,6 +71,86 @@ export function CompareDuel({ candidate, newTaskTitle, progress, onDecide }: Com
           <span key={i} className={`dot ${i < progress.done ? 'done' : i === progress.done ? 'active' : ''}`} />
         ))}
       </div>
-    </div>
+    </motion.div>
+  );
+}
+
+interface DuelCardProps {
+  title: string;
+  reducedMotion: boolean;
+  commitRef: RefObject<CommitFn | null>;
+  onResolved: (newTaskWon: boolean) => void;
+}
+
+function DuelCard({ title, reducedMotion, commitRef, onResolved }: DuelCardProps) {
+  // Drag position lives in motion values, never React state: the card tracks the
+  // finger on the compositor without re-rendering per frame.
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const committed = useRef(false);
+
+  const rotate = useTransform(x, [-300, 0, 300], reducedMotion ? [0, 0, 0] : [-16, 0, 16], { clamp: true });
+  const soonerOpacity = useTransform(x, [40, 130], [0, 1], { clamp: true });
+  const laterOpacity = useTransform(x, [-130, -40], [1, 0], { clamp: true });
+
+  function commit(direction: 1 | -1, velocityX = 0, velocityY = 0) {
+    if (committed.current) return;
+    committed.current = true;
+    navigator.vibrate?.(10); // branding.md §6: light haptic on commit
+
+    const distance = window.innerWidth + 240;
+    // Fling duration tracks how hard it was thrown, so a flick leaves fast and a
+    // slow push-past-threshold still reads as deliberate.
+    const speed = Math.abs(velocityX);
+    const duration = reducedMotion ? 0.1 : Math.min(0.3, Math.max(0.16, 0.32 - speed / 6000));
+    const ease: [number, number, number, number] = [0.32, 0.72, 0, 1];
+
+    animate(y, y.get() + velocityY * 0.1, { duration, ease });
+    animate(x, direction * distance, {
+      duration,
+      ease,
+      onComplete: () => onResolved(direction === 1),
+    });
+  }
+
+  useLayoutEffect(() => {
+    commitRef.current = commit;
+  });
+
+  function handleDragEnd(_event: unknown, info: PanInfo) {
+    const decision = decideSwipe(info.offset.x, info.velocity.x, SWIPE_THRESHOLD_PX);
+    if (decision !== null) {
+      commit(decision, info.velocity.x, info.velocity.y);
+      return;
+    }
+    // Under threshold: hand the release velocity to the spring so the snap-back
+    // continues the gesture instead of restarting from a dead stop.
+    const spring = { type: 'spring' as const, stiffness: 520, damping: 34 };
+    animate(x, 0, { ...spring, velocity: info.velocity.x });
+    animate(y, 0, { ...spring, velocity: info.velocity.y });
+  }
+
+  return (
+    <motion.div
+      className="duel-card"
+      drag
+      dragMomentum={false}
+      style={{ x, y, rotate }}
+      onDragEnd={handleDragEnd}
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: reducedMotion ? 0 : 0.18, ease: 'easeOut' }}
+      whileDrag={{ scale: 1.03 }}
+    >
+      <motion.span className="duel-stamp sooner" style={{ opacity: soonerOpacity }} aria-hidden>
+        sooner
+      </motion.span>
+      <motion.span className="duel-stamp later" style={{ opacity: laterOpacity }} aria-hidden>
+        later
+      </motion.span>
+
+      <div className="duel-card-title">{title}</div>
+      <div className="duel-card-meta">just added</div>
+    </motion.div>
   );
 }

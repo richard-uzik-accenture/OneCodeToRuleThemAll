@@ -52,7 +52,12 @@ export function MorningFlow(props: MorningFlowProps) {
           exit="exit"
         >
           {step === 'leftover' && props.currentLeftover && (
-            <LeftoverCard task={props.currentLeftover} remaining={props.remaining} onResolve={props.onResolveLeftover} />
+            <LeftoverCard
+              key={props.currentLeftover.id}
+              task={props.currentLeftover}
+              remaining={props.remaining}
+              onResolve={props.onResolveLeftover}
+            />
           )}
           {step === 'braindump' && <BrainDump onAdd={props.onAddBrainDumpTask} onDone={props.onFinishBrainDump} />}
           {step === 'merge' && (

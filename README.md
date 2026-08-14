@@ -22,9 +22,9 @@ A personal task-triage app: Vite + React + TypeScript on the frontend, talking d
 3. In the Supabase dashboard:
    - **Authentication → Providers**: confirm Email is enabled.
    - **Authentication → Settings**: turn off "Confirm email" so sign-up works immediately without an email round-trip.
-   - **SQL Editor**: paste the contents of [supabase/migrations/0001_tasks.sql](supabase/migrations/0001_tasks.sql) and run it. This creates the `tasks` table with row-level security scoped to `auth.uid()`.
+   - **SQL Editor**: run **every** file in [supabase/migrations/](supabase/migrations/) in filename order, starting with [0001_tasks.sql](supabase/migrations/0001_tasks.sql) (creates the `tasks` table with row-level security scoped to `auth.uid()`). Skipping a later migration leaves the database disagreeing with the app, which shows up as an opaque HTTP 400 on insert rather than a clear error.
 
-   (The Supabase CLI isn't used for migrations here — this is a single-developer project, so the SQL file in the repo is just a readable record of the schema, applied by hand.)
+   (The Supabase CLI isn't used for migrations here — this is a single-developer project, so the SQL files in the repo are just a readable record of the schema, applied by hand. If the app starts 400ing on writes, re-run the latest migration: they are written to be safe to apply more than once.)
 
 4. Copy `.env.example` to `.env.local` and fill in your values:
 
