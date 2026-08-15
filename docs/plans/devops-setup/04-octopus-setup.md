@@ -1,9 +1,18 @@
 # Phase 4 — Octopus Deploy setup
 
 Octopus Cloud instance provisioned, environments/lifecycle/project/variables built,
-`Deploy to Vercel` step exists and runs. **Currently failing on `npx: command not
-found`** — the dynamic worker has no Node.js preinstalled. Fix is written into the
-step's script below; needs to be pasted in and re-tested. Resume there.
+`Deploy to Vercel` step exists and runs. **Currently blocked on installing Node.js
+without root** — the dynamic worker's user has no passwordless sudo (confirmed via
+two failed sudo-based attempts). Current fix uses `nvm` for a user-space install, no
+root needed; written into the step's script below, needs to be pasted in and
+re-tested. Resume there.
+
+**Important, learned the hard way**: Octopus **releases snapshot the deployment
+process at creation time** — editing a step's script does NOT affect releases already
+created, only ones created afterward. After changing this step, you must create a
+*new* release (push to `main`, or `workflow_dispatch` on the GitHub Actions workflow)
+before redeploying — redeploying an old release just re-runs its old snapshot and
+looks like the edit "didn't save" even when it did.
 
 ## Deliverables
 
@@ -66,6 +75,16 @@ concepts needed), or switch the step to run inside a Docker execution container 
 `octopusdeploy/worker-tools` (deferred as a possible later optimization, not needed
 now).
 
+**Revision history on this fix** — two earlier attempts failed before landing on the
+current approach:
+1. `sudo apt-get install -y nodejs` (via NodeSource) — failed: `sudo: a terminal is
+   required to read the password`.
+2. Same, with `id -u` root-check + `sudo -n` (non-interactive) fallback — failed
+   definitively: `sudo: a password is required`. Confirms the worker's user has no
+   passwordless sudo at all, root-owned install approaches are a dead end here.
+3. **Current**: install Node via `nvm` into `$HOME/.nvm` — no root/sudo needed at
+   all, since it's a pure user-space install. This is the version below.
+
 ### Fix — paste this updated script into the `Deploy to Vercel` step
 
 ```bash
@@ -74,9 +93,12 @@ set -euo pipefail
 echo "Deploying package to Vercel project #{VercelProjectId} (environment: #{Octopus.Environment.Name})"
 
 if ! command -v npx >/dev/null 2>&1; then
-  echo "Node.js not found on worker, installing..."
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-  sudo apt-get install -y nodejs
+  echo "Node.js not found on worker, installing via nvm (no root needed)..."
+  export NVM_DIR="$HOME/.nvm"
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  nvm install 20
+  nvm use 20
 fi
 
 PACKAGE_DIR="#{Octopus.Action.Package[reflow].ExtractedPath}"
