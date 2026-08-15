@@ -14,6 +14,18 @@ created, only ones created afterward. After changing this step, you must create 
 before redeploying — redeploying an old release just re-runs its old snapshot and
 looks like the edit "didn't save" even when it did.
 
+**Second blocker found and fixed (2026-08-15, same session)**: once Node install
+worked, `vercel deploy --prebuilt` failed with `no prebuilt output found in
+".vercel/output"`. Root cause was in the **GitHub Actions packaging step**, not this
+script — `create-zip-package-action`'s `base_path: .vercel/output` zipped the
+*contents* of that folder at the zip's root, so after Octopus extracted the package
+there was no `.vercel/output` subfolder left, just its contents directly in
+`$PACKAGE_DIR`. Fixed by changing the workflow's package step to `base_path: .` with
+`files: .vercel/output/**/*.*`, which preserves the `.vercel/output/` path inside the
+package. See `.github/workflows/release.yml` — this script needed no changes, since
+`cd "$PACKAGE_DIR"` + writing `.vercel/project.json` there is correct once
+`$PACKAGE_DIR` actually contains `.vercel/output/` as a subfolder.
+
 ## Deliverables
 
 - [x] Provisioned Octopus Cloud (free Starter tier). Site URL/instance chosen by
