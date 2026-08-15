@@ -1,8 +1,9 @@
 # Phase 4 — Octopus Deploy setup
 
-Octopus Cloud instance provisioned, environments/lifecycle/project/variables built.
-**One step is deliberately left unfinished**: the "Deploy to Vercel" step's package
-reference — see "Where we paused" below. Resume there.
+Octopus Cloud instance provisioned, environments/lifecycle/project/variables built,
+`Deploy to Vercel` step exists and runs. **Currently failing on `npx: command not
+found`** — the dynamic worker has no Node.js preinstalled. Fix is written into the
+step's script below; needs to be pasted in and re-tested. Resume there.
 
 ## Deliverables
 
@@ -14,8 +15,7 @@ reference — see "Where we paused" below. Resume there.
       Vercel's API).
 - [x] Lifecycle: using the built-in **"Default Lifecycle"** as-is, not a custom one.
       Its "default conventions" already enforce dev → preprod → prod ordering because
-      it auto-includes environments in the order they were created (see the
-      Lifecycle's own Phases description). No explicit phases needed.
+      it auto-includes environments in the order they were created.
 - [x] Created the Octopus project: **`reflow`**. Settings: process/variables stored
       in Octopus (not Config-as-Code/Git), deploy target type **"Other"** (none of
       Kubernetes/Azure/AWS/Linux/Windows fit — we deploy via a scripted Vercel API
@@ -32,95 +32,89 @@ reference — see "Where we paused" below. Resume there.
       - `SupabaseAnonKey` — same shape as `SupabaseUrl`.
       - `SupabaseSchema` — three rows: `public` (dev), `preprod` (preprod), `public`
         (prod).
-      - Note: an earlier attempt used per-environment variable *names* (e.g.
-        `SupabaseSchemaProd`) — this was corrected to the scoped-single-name pattern
-        before building the deploy step, to avoid needing per-environment branching
-        logic in the script.
 - [x] Generated an Octopus API key (Full access, 1 year expiry) for the GitHub
       Actions service account. Value is in the `OCTOPUS_API_KEY` GitHub secret
       (Phase 5) — not recorded here.
-- [ ] **Paused, not finished**: the "Deploy to Vercel" deployment process step. See
-      below.
+- [x] `Deploy to Vercel` step exists in the project's deployment process: Run a
+      Script, Bash, Execution Location **"Run once on a worker"**, Referenced Package
+      `reflow` (Octopus Server built-in feed, version left blank, extract-on-deploy
+      checked).
+- [x] Confirmed a real release (`0.0.1`, package `reflow` v1.0.4) builds a **viable
+      release plan** in Octopus — the earlier "no viable release plans" error is
+      resolved now that the deploy step exists and references the package.
+- [ ] **Open**: manually deploying release `0.0.1` to `dev` fails inside the `Deploy
+      to Vercel` step — see "Current blocker" below.
+- [ ] Not started: manual intervention approval steps for `preprod`/`prod`.
+      Deliberately deferred until `dev` deploys successfully at least once — no point
+      adding approval-gate complexity before the base deploy path is proven. Revisit
+      once `dev` is green.
 
-## Where we paused — resume here next session
+## Current blocker
 
-On the project's **Process** page, added one step:
+Manually clicking "Deploy to dev" on release `0.0.1` got through package
+acquisition and started the `Deploy to Vercel` step, but failed:
 
-- **Type**: Run a Script (not "Deploy a Package" — that step type assumes a
-  registered Tentacle/deployment-target machine, which we don't have; "Run a Script"
-  with a referenced package is the correct fit for calling an external API like
-  Vercel's).
-- **Step name**: `Deploy to Vercel`
-- **Script Source**: Inline, language **Bash**
-- **Execution Location**: **"Run once on a worker"**
-- **Referenced Packages**: attempted to add a reference with Name/Package ID
-  `reflow`, but Octopus rejected it — **"Please select a package ID"** — because at
-  that point no package named `reflow` had ever been pushed to the built-in
-  repository yet (chicken-and-egg: the reference picker validates against packages
-  that already exist). Decision made at the time: pause this step, go build Phase 5
-  (GitHub Actions) first so a real `reflow` package exists, then come back.
+```
+/home/Octopus/Work/.../Script.sh: line 16: npx: command not found
+The remote script failed with exit code 127
+```
 
-**As of this session, Phase 5's workflow has successfully pushed real `reflow`
-packages** (e.g. `reflow.1.0.3`) to Octopus's built-in repository — confirmed via the
-"Push package to Octopus" workflow step going green. So the blocker is gone.
+Octopus's dynamic Ubuntu worker (`UbuntuDefault` pool) has no Node.js/npm
+preinstalled — it's a generic Linux worker, not a JS-toolchain image. Two ways to
+fix this were considered: install Node inline in the script (chosen — no new Octopus
+concepts needed), or switch the step to run inside a Docker execution container like
+`octopusdeploy/worker-tools` (deferred as a possible later optimization, not needed
+now).
+
+### Fix — paste this updated script into the `Deploy to Vercel` step
+
+```bash
+set -euo pipefail
+
+echo "Deploying package to Vercel project #{VercelProjectId} (environment: #{Octopus.Environment.Name})"
+
+if ! command -v npx >/dev/null 2>&1; then
+  echo "Node.js not found on worker, installing..."
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+fi
+
+PACKAGE_DIR="#{Octopus.Action.Package[reflow].ExtractedPath}"
+cd "$PACKAGE_DIR"
+
+mkdir -p .vercel
+cat > .vercel/project.json <<EOF
+{
+  "projectId": "#{VercelProjectId}",
+  "orgId": "#{VercelOrgId}"
+}
+EOF
+
+npx --yes vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
+```
 
 ### Next steps to finish this phase
 
-1. Go back to the `reflow` project's Process page, open (or re-add, if it didn't
-   save) the `Deploy to Vercel` step.
-2. Add the Referenced Package: Package feed = Octopus Server (built-in), Name/ID =
-   `reflow`, Version = leave blank (always use the release's version), Package
-   Acquisition = default, "Extract package during deployment" = checked. It should
-   now resolve since real `reflow` packages exist.
-3. Paste this script body (Bash):
-   ```bash
-   set -euo pipefail
-
-   echo "Deploying package to Vercel project #{VercelProjectId} (environment: #{Octopus.Environment.Name})"
-
-   PACKAGE_DIR="#{Octopus.Action.Package[reflow].ExtractedPath}"
-   cd "$PACKAGE_DIR"
-
-   mkdir -p .vercel
-   cat > .vercel/project.json <<EOF
-   {
-     "projectId": "#{VercelProjectId}",
-     "orgId": "#{VercelOrgId}"
-   }
-   EOF
-
-   npx vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
-   ```
-   Package Requirement: leave as **"Let Octopus decide"** (not "Before package
-   acquisition" — the script needs the package already extracted).
-4. Save the step.
-5. **Then**: add manual intervention approval steps ahead of `preprod` and `prod`
-   (not yet done — this was deferred while chasing the package-reference blocker).
-   In Octopus, this is typically its own step type (search "Manual Intervention" when
-   adding a step) placed *before* the `Deploy to Vercel` step, scoped to run only for
-   the `preprod`/`prod` environments (via that step's "Configure features" →
-   Environments → "Run only for specific environments"), with the approving
-   team/user restricted to the human. No approval gate on `dev`.
-6. Verify by triggering a release deploy manually in Octopus (Releases → the release
-   already created from a GitHub Actions run → Deploy) and watching it either
-   succeed end-to-end for `dev`, or reveal the next real error to fix.
-
-## Known blocker hit after this phase's deploy-step work (still open)
-
-The most recent GitHub Actions run got past packaging and pushing, but
-**`OctopusDeploy/create-release-action` failed**:
-
-> Error: There are no viable release plans in any channels using the provided
-> arguments. The following release plans were considered: Channel: 'Default' (this
-> is the default channel)
-
-This is very likely explained by the deploy process having **no complete step**
-referencing the `reflow` package yet (the paused step above) — Octopus can't build a
-release plan for a channel whose deployment process doesn't actually consume the
-package being released. Finishing steps 1-4 above should resolve it, but treat that
-as a hypothesis to verify next session, not a certainty — re-run the GitHub Actions
-workflow (or trigger a release manually in Octopus) after finishing the step and see
-if this specific error clears before moving on to anything else.
+1. Open the `Deploy to Vercel` step, replace its script body with the fixed version
+   above, save.
+2. Deploy release `0.0.1` to `dev` again (Releases → `0.0.1` → "Deploy to dev...").
+   Watch for the Node install lines in the log, then confirm `npx vercel deploy`
+   actually runs and succeeds.
+3. If it succeeds: check `dev.usereflow.app` in a browser to confirm the real app is
+   live there (not just "Octopus said success" — verify the actual site).
+4. If it fails again: paste the new log — likely next candidates are Vercel auth
+   (`VercelToken` invalid/expired) or project linking (`VercelProjectId`/`VercelOrgId`
+   mismatch), not infrastructure this time.
+5. Once `dev` deploys are reliably green: add Manual Intervention approval steps for
+   `preprod`/`prod`. Add Step → search "Manual Intervention" → scope via "Configure
+   features" → Environments → "Run only for specific environments" → `preprod` +
+   `prod` → restrict approver to the human's Octopus user/team → **place this step
+   before `Deploy to Vercel` in the step order** (drag/reorder if Octopus appends it
+   at the bottom). No gate on `dev`.
+6. After that: deploy the same release to `preprod`, confirm the approval gate
+   actually pauses and requires a click, then approve and confirm it deploys to
+   `quality.usereflow.app` using the `preprod` schema/Vercel project. Repeat for
+   `prod` only when genuinely ready to go live — don't approve prod as a test.
 
 ## Notes
 

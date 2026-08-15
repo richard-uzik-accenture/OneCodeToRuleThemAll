@@ -17,25 +17,25 @@ promoted by **Octopus Deploy** from a single build produced on `main`.
   missing migrations 0002/0003** (`tags`/`due_time` columns) — flagged, unfixed.
 - Vercel: three projects exist (DEV/QUALITY/PROD), domains set, git auto-deploy
   disabled ("Don't build anything"), env vars set on all three.
-- Octopus Cloud: instance provisioned, environments/lifecycle/project/variables all
-  built. **The Vercel deploy step is unfinished** — paused mid-configuration, see
-  Phase 4's file for exact resume instructions.
-- GitHub Actions: `.github/workflows/release.yml` exists, triggers on push to
-  `main`, successfully builds+packages+pushes to Octopus. **Release creation
-  currently fails** with a "no viable release plans" error — see Phase 5's file,
-  likely caused by the same unfinished Octopus deploy step.
+- GitHub Actions: **fully working** (Phase 5, archived) — every push to `main`
+  builds, packages, and creates a real Octopus release.
+- Octopus Cloud: instance, environments, lifecycle, project, variables, and the
+  `Deploy to Vercel` step all exist and produce a viable release plan. **Currently
+  blocked** on `npx: command not found` when actually deploying to `dev` — Octopus's
+  worker has no Node.js preinstalled. Fix is written and ready to paste in, just not
+  tested yet. See Phase 4's file.
 
 ## Resume here next session
 
-1. Finish Octopus's paused "Deploy to Vercel" step — Phase 4's file has the exact
-   script and config to paste in.
-2. Add the manual intervention approval steps for `preprod`/`prod` (also not done
-   yet).
-3. Re-trigger the GitHub Actions workflow (push to `main`, or `workflow_dispatch`)
-   and see if the "no viable release plans" error clears.
-4. If it does: watch the `dev` deploy actually happen, confirm `dev.usereflow.app`
-   serves the real app. If it doesn't clear: check the `reflow` project's Channels
-   page in Octopus.
+1. Open Octopus's `reflow` project → Process → `Deploy to Vercel` step, replace the
+   script with the Node-install-then-deploy version in Phase 4's file.
+2. Deploy release `0.0.1` (or whatever's latest) to `dev` again, watch the log.
+3. If it succeeds: open `dev.usereflow.app` in a browser and confirm the real app
+   loads — that's the actual proof, not just Octopus saying "success."
+4. If it fails again: it's likely Vercel auth/project-linking this time, not
+   infrastructure — paste the new log.
+5. Once `dev` deploys reliably: add Manual Intervention approval steps for
+   `preprod`/`prod` (deliberately not done yet — see Phase 4 for exact steps).
 
 ## Target state
 
@@ -72,7 +72,7 @@ guardrails — this plan is just the ordered steps to build it.
 | 2 | [02-supabase-preprod.md](02-supabase-preprod.md) | New Supabase project for QUALITY, schema applied |
 | 3 | [03-vercel-projects.md](03-vercel-projects.md) | Three Vercel projects, git auto-deploy disabled, env vars set |
 | 4 | [04-octopus-setup.md](04-octopus-setup.md) | Octopus instance, project, environments, lifecycle, deploy steps, approvals |
-| 5 | [05-github-actions.md](05-github-actions.md) | Build workflow on `main` that packages and hands off to Octopus |
+| 5 | archived | Build workflow on `main` that packages and hands off to Octopus — done |
 | 6 | [06-close-the-loop.md](06-close-the-loop.md) | Dry-run the whole pipeline, retarget in-flight feature branch, update docs |
 
 Work through phases in order — each depends on the previous one's outputs (e.g. Phase

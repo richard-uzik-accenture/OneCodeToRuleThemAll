@@ -62,42 +62,27 @@ Phase 4f's script).
         name is required" before this was added. Confirmed via the dashboard that
         the instance's space is literally named "Default" (not a placeholder — that
         really is this Octopus Cloud instance's only/default space name).
-- [x] Verified: pushing to `main` (via `dev` → `main` PRs, three iterations to debug
-      real failures below) produces a GitHub Actions run that reaches
-      `create-release-action`. Package creation and push to Octopus both succeed
-      (confirmed a real `reflow.1.0.3` package landed in Octopus's built-in repo).
-      **Not yet verified**: an actual successful release/deploy to `dev` — blocked by
-      the open error below.
+- [x] Verified: pushing to `main` (or `workflow_dispatch`) produces a GitHub Actions
+      run that succeeds end-to-end, including `create-release-action` — confirmed a
+      real Octopus release (`0.0.1`, package `reflow` v1.0.4) with a viable release
+      plan. This phase's own scope (build → package → push → create release) is
+      **fully working**.
 
 ## Debugging history (so the fixes aren't rediscovered from scratch)
 
-Three real failures hit and fixed, in order:
+Three real failures hit and fixed in this workflow, in order:
 1. `octo: command not found` — used the legacy/deprecated `octo pack` CLI command
    after installing the *new* Octopus CLI (binary `octopus`, no `octo`). Fixed by
    switching packaging to `OctopusDeploy/create-zip-package-action@v4` (no CLI
    install needed at all).
 2. `Error: The Octopus space name is required` — added `OCTOPUS_SPACE: Default` to
    job-level `env:`.
-3. **Still open**, hit on the `create-release-action` step:
-   ```
-   Error: There are no viable release plans in any channels using the provided
-   arguments. The following release plans were considered:
-   Channel: 'Default' (this is the default channel)
-   ```
-   Leading hypothesis (unverified): the Octopus deploy process has no finished step
-   that actually consumes the `reflow` package — see Phase 4's "paused" deploy step.
-   A release plan needs at least one step per channel that references the package
-   being released; with that step incomplete/unsaved, Octopus may have nothing to
-   build a plan around. **Next session: finish Phase 4's paused step first, then
-   re-trigger this workflow (push a trivial change to `main`, or use
-   `workflow_dispatch`) and see if this exact error clears before investigating
-   further.** If it doesn't clear, look at the project's Channels page (Deployments →
-   [reflow project] → Channels) to confirm the "Default" channel's version range/step
-   rules actually match what's being released.
+3. `Error: There are no viable release plans in any channels...` — caused by the
+   Octopus deploy process having no step that consumed the `reflow` package yet.
+   Fixed once Phase 4's `Deploy to Vercel` step existed with a real package
+   reference — confirmed resolved.
 
-## Then, unblocks Phase 4f
-
-A real `reflow` package now exists in Octopus's built-in repository — Phase 4's
-paused "Deploy to Vercel" step's package reference should now resolve. Go finish that
-step (see Phase 4's file for exact instructions), then come back and re-run this
-workflow to see if the release-plan error above clears.
+All three were failures in *this* workflow's territory (packaging/pushing/releasing).
+Deploying the release to an actual environment is Octopus's job — see Phase 4 for
+that (currently blocked on `npx: command not found` on Octopus's worker, unrelated to
+anything in this workflow).
