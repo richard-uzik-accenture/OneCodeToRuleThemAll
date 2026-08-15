@@ -19,23 +19,28 @@ promoted by **Octopus Deploy** from a single build produced on `main`.
   disabled ("Don't build anything"), env vars set on all three.
 - GitHub Actions: **fully working** (Phase 5, archived) — every push to `main`
   builds, packages, and creates a real Octopus release.
-- Octopus Cloud: instance, environments, lifecycle, project, variables, and the
-  `Deploy to Vercel` step all exist and produce a viable release plan. **Currently
-  blocked** on `npx: command not found` when actually deploying to `dev` — Octopus's
-  worker has no Node.js preinstalled. Fix is written and ready to paste in, just not
-  tested yet. See Phase 4's file.
+- Octopus Cloud: **the whole pipeline works end-to-end** — a release deploys to
+  `dev` successfully (Node install via nvm, package extraction, `vercel deploy
+  --prebuilt` all succeed). `dev.usereflow.app` is live and serving the real app.
+- **Open bug (app-level, not pipeline)**: logging in at `dev.usereflow.app` fails
+  with `invalid API key` — Supabase rejecting the anon key the deployed build is
+  using. Leading hypotheses documented in Phase 4's file; not yet diagnosed.
 
 ## Resume here next session
 
-1. Open Octopus's `reflow` project → Process → `Deploy to Vercel` step, replace the
-   script with the Node-install-then-deploy version in Phase 4's file.
-2. Deploy release `0.0.1` (or whatever's latest) to `dev` again, watch the log.
-3. If it succeeds: open `dev.usereflow.app` in a browser and confirm the real app
-   loads — that's the actual proof, not just Octopus saying "success."
-4. If it fails again: it's likely Vercel auth/project-linking this time, not
-   infrastructure — paste the new log.
-5. Once `dev` deploys reliably: add Manual Intervention approval steps for
-   `preprod`/`prod` (deliberately not done yet — see Phase 4 for exact steps).
+1. Debug the `invalid API key` login error on `dev.usereflow.app` — start with
+   Phase 4's "Current blocker" section, which lists hypotheses in likely order
+   (env vars not actually pulled during `vercel build` in CI being the top
+   suspect, since Vite inlines env vars at build time and that build happens in
+   GitHub Actions, not on Vercel's own infra).
+2. Once login works and `dev` is fully green (pipeline *and* app behavior): add
+   Manual Intervention approval steps for `preprod`/`prod` in Octopus (deliberately
+   not done yet — see Phase 4 for exact steps).
+3. Deploy to `preprod`, confirm the approval gate pauses correctly, verify
+   `quality.usereflow.app` serves correctly using the `preprod` schema.
+4. Only once genuinely ready: approve a real `prod` deploy (never as a test).
+5. Then Phase 6: retarget `feature/combat-screen-polish`, update README, archive
+   Phase 4 once its checklist is fully checked.
 
 ## Target state
 
