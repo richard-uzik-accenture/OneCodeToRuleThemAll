@@ -42,10 +42,10 @@ jobs:
         with:
           package_id: reflow
           version: 1.0.${{ github.run_number }}
-          base_path: .vercel/output
+          base_path: .
           output_folder: ./package
           files: |
-            **/*.*
+            .vercel/output/**/*.*
 
       - name: Push package to Octopus
         uses: OctopusDeploy/push-package-action@v4

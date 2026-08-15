@@ -28,14 +28,23 @@ data. QUALITY gets a new `preprod` schema in that same project.
       leave `preprod.tasks` empty for now; seed a few rows manually (via Table Editor,
       using a real dev-project test user's id) once QUALITY is actually being used
       for testing, not before.
-- [ ] Separately noted, not part of this phase: prod's `public.tasks` is missing the
-      `tags`/`due_time` columns that migrations `0002_task_fields.sql` and
-      `0003_align_task_schema.sql` add — prod is behind the migrations already in the
-      repo. Worth fixing since the app sends `tags` on every insert. Flag for a
-      follow-up, separate from devops-setup.
-- [ ] Record: the dev project's URL + anon key are reused for both DEV and QUALITY
-      Vercel env vars in Phase 3 (same URL/key, different `VITE_SUPABASE_SCHEMA`).
-      Only PROD gets a distinct Supabase URL/key.
+- [x] Record: the dev project's URL + anon key are reused for both DEV and QUALITY
+      Vercel env vars in Phase 3 (same URL/key, different `VITE_SUPABASE_SCHEMA`) —
+      done as part of Phase 3, confirmed in its archived file.
+
+## Not part of this phase's checklist — why this file isn't archived yet
+
+This phase's actual Supabase/schema work is done (all items above are checked). It's
+still sitting un-archived, on purpose, as a visible reminder of one real gap:
+
+- **Prod's `public.tasks` is missing the `tags`/`due_time` columns** that migrations
+  `0002_task_fields.sql` and `0003_align_task_schema.sql` add — prod is behind the
+  migrations already in the repo (discovered while building the prod→preprod data
+  copy query in this phase; see git history). The app sends `tags` on every insert,
+  so this is a live bug risk on prod, not just a migration hygiene issue. Not caused
+  by and not fixable as part of devops-setup — needs its own fix (apply the missing
+  migrations to prod), tracked here so it isn't lost. Once fixed (or explicitly
+  deferred by the user with a reason), archive this file.
 
 ## Explicitly out of scope for this pass
 
