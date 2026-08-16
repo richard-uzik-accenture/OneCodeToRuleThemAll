@@ -1,0 +1,7 @@
+- CLAUDE.md rework
+- empty states
+- error states
+- loading -> skeletons
+- visible feedback / confirmations on each action 
+- duel rework
+- seemless flow between screens
