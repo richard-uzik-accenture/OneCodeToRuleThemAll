@@ -6,6 +6,7 @@ import { pageVariants } from './lib/transitions';
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Today } from './pages/Today';
+import { VersionBadge } from './components/VersionBadge';
 
 function App() {
   const { session, loading } = useAuth();
@@ -20,20 +21,23 @@ function App() {
   // morning flow) are portaled to document.body so the page-transition
   // transform on .screen-frame never becomes their containing block.
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={screen}
-        className="screen-frame"
-        variants={reducedMotion ? undefined : pageVariants}
-        initial="initial"
-        animate="enter"
-        exit="exit"
-      >
-        {screen === 'today' && <Today />}
-        {screen === 'auth' && <Auth onBack={() => setShowAuth(false)} />}
-        {screen === 'landing' && <Landing onGetStarted={() => setShowAuth(true)} />}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={screen}
+          className="screen-frame"
+          variants={reducedMotion ? undefined : pageVariants}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+        >
+          {screen === 'today' && <Today />}
+          {screen === 'auth' && <Auth onBack={() => setShowAuth(false)} />}
+          {screen === 'landing' && <Landing onGetStarted={() => setShowAuth(true)} />}
+        </motion.div>
+      </AnimatePresence>
+      <VersionBadge />
+    </>
   );
 }
 
