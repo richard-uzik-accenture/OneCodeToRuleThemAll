@@ -1,154 +1,103 @@
 # Phase 4 — Octopus Deploy setup
 
-Octopus Cloud instance provisioned, environments/lifecycle/project/variables built,
-`Deploy to Vercel` step exists and runs. **Currently blocked on installing Node.js
-without root** — the dynamic worker's user has no passwordless sudo (confirmed via
-two failed sudo-based attempts). Current fix uses `nvm` for a user-space install, no
-root needed; written into the step's script below, needs to be pasted in and
-re-tested. Resume there.
-
-**Important, learned the hard way**: Octopus **releases snapshot the deployment
-process at creation time** — editing a step's script does NOT affect releases already
-created, only ones created afterward. After changing this step, you must create a
-*new* release (push to `main`, or `workflow_dispatch` on the GitHub Actions workflow)
-before redeploying — redeploying an old release just re-runs its old snapshot and
-looks like the edit "didn't save" even when it did.
-
-**Second blocker found and fixed (2026-08-15, same session)**: once Node install
-worked, `vercel deploy --prebuilt` failed with `no prebuilt output found in
-".vercel/output"`. Root cause was in the **GitHub Actions packaging step**, not this
-script — `create-zip-package-action`'s `base_path: .vercel/output` zipped the
-*contents* of that folder at the zip's root, so after Octopus extracted the package
-there was no `.vercel/output` subfolder left, just its contents directly in
-`$PACKAGE_DIR`. Fixed by changing the workflow's package step to `base_path: .` with
-`files: .vercel/output/**/*.*`, which preserves the `.vercel/output/` path inside the
-package. See `.github/workflows/release.yml` — this script needed no changes, since
-`cd "$PACKAGE_DIR"` + writing `.vercel/project.json` there is correct once
-`$PACKAGE_DIR` actually contains `.vercel/output/` as a subfolder.
+**The full pipeline now works end-to-end, including a working login.** GitHub
+Actions builds and packages, Octopus deploys to `dev` via Vercel, and
+`dev.usereflow.app` serves a real, working app. What's left: apply the same fix to
+QUALITY/PROD's env vars, then add manual intervention approval steps for
+`preprod`/`prod`.
 
 ## Deliverables
 
-- [x] Provisioned Octopus Cloud (free Starter tier). Site URL/instance chosen by
-      user, host region set to a European region (closer to Supabase's `eu-west-3`).
-- [x] Created environments, in order: `dev`, `preprod`, `prod`. "Dynamic
-      Infrastructure" left unchecked on each (no auto-registering deployment targets
-      — we don't use Octopus-managed infrastructure at all, deploys go straight to
-      Vercel's API).
-- [x] Lifecycle: using the built-in **"Default Lifecycle"** as-is, not a custom one.
-      Its "default conventions" already enforce dev → preprod → prod ordering because
-      it auto-includes environments in the order they were created.
-- [x] Created the Octopus project: **`reflow`**. Settings: process/variables stored
-      in Octopus (not Config-as-Code/Git), deploy target type **"Other"** (none of
-      Kubernetes/Azure/AWS/Linux/Windows fit — we deploy via a scripted Vercel API
-      call, not to Octopus-managed infrastructure).
-- [x] Project variables added, **one name per variable with multiple environment-
-      scoped rows** (not per-environment variable names — keeps the deploy step's
-      script identical across all three environments):
-      - `VercelToken` — scoped to dev, preprod, prod (same rotated token).
-      - `VercelOrgId` — scoped to dev, preprod, prod (same Team ID).
-      - `VercelProjectId` — three rows, one value per environment (dev/preprod/prod
-        Vercel project IDs).
-      - `SupabaseUrl` — one row scoped to dev+preprod (shared Supabase project), one
-        row scoped to prod (separate project).
-      - `SupabaseAnonKey` — same shape as `SupabaseUrl`.
-      - `SupabaseSchema` — three rows: `public` (dev), `preprod` (preprod), `public`
-        (prod).
-- [x] Generated an Octopus API key (Full access, 1 year expiry) for the GitHub
-      Actions service account. Value is in the `OCTOPUS_API_KEY` GitHub secret
-      (Phase 5) — not recorded here.
-- [x] `Deploy to Vercel` step exists in the project's deployment process: Run a
-      Script, Bash, Execution Location **"Run once on a worker"**, Referenced Package
-      `reflow` (Octopus Server built-in feed, version left blank, extract-on-deploy
-      checked).
-- [x] Confirmed a real release (`0.0.1`, package `reflow` v1.0.4) builds a **viable
-      release plan** in Octopus — the earlier "no viable release plans" error is
-      resolved now that the deploy step exists and references the package.
-- [ ] **Open**: manually deploying release `0.0.1` to `dev` fails inside the `Deploy
-      to Vercel` step — see "Current blocker" below.
-- [ ] Not started: manual intervention approval steps for `preprod`/`prod`.
-      Deliberately deferred until `dev` deploys successfully at least once — no point
-      adding approval-gate complexity before the base deploy path is proven. Revisit
-      once `dev` is green.
+- [x] Provisioned Octopus Cloud (free Starter tier).
+- [x] Created environments, in order: `dev`, `preprod`, `prod`.
+- [x] Lifecycle: built-in **"Default Lifecycle"**, unmodified — its default
+      conventions already enforce dev → preprod → prod ordering.
+- [x] Created the Octopus project **`reflow`** (process/variables stored in Octopus,
+      not Config-as-Code; deploy target type "Other").
+- [x] Project variables added, one name per variable with environment-scoped rows
+      (`VercelToken`, `VercelOrgId`, `VercelProjectId`, `SupabaseUrl`,
+      `SupabaseAnonKey`, `SupabaseSchema`).
+- [x] Generated an Octopus API key for GitHub Actions (in the `OCTOPUS_API_KEY`
+      GitHub secret).
+- [x] `Deploy to Vercel` step: Run a Script, Bash, "Run once on a worker", Referenced
+      Package `reflow`. Working script (installs Node via `nvm` since the worker has
+      no root/sudo, then runs `vercel deploy --prebuilt`):
+      ```bash
+      set -euo pipefail
 
-## Current blocker
+      echo "Deploying package to Vercel project #{VercelProjectId} (environment: #{Octopus.Environment.Name})"
 
-Manually clicking "Deploy to dev" on release `0.0.1` got through package
-acquisition and started the `Deploy to Vercel` step, but failed:
+      if ! command -v npx >/dev/null 2>&1; then
+        echo "Node.js not found on worker, installing via nvm (no root needed)..."
+        export NVM_DIR="$HOME/.nvm"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        nvm install 20
+        nvm use 20
+      fi
 
-```
-/home/Octopus/Work/.../Script.sh: line 16: npx: command not found
-The remote script failed with exit code 127
-```
+      PACKAGE_DIR="#{Octopus.Action.Package[reflow].ExtractedPath}"
+      cd "$PACKAGE_DIR"
 
-Octopus's dynamic Ubuntu worker (`UbuntuDefault` pool) has no Node.js/npm
-preinstalled — it's a generic Linux worker, not a JS-toolchain image. Two ways to
-fix this were considered: install Node inline in the script (chosen — no new Octopus
-concepts needed), or switch the step to run inside a Docker execution container like
-`octopusdeploy/worker-tools` (deferred as a possible later optimization, not needed
-now).
+      mkdir -p .vercel
+      cat > .vercel/project.json <<EOF
+      {
+        "projectId": "#{VercelProjectId}",
+        "orgId": "#{VercelOrgId}"
+      }
+      EOF
 
-**Revision history on this fix** — two earlier attempts failed before landing on the
-current approach:
-1. `sudo apt-get install -y nodejs` (via NodeSource) — failed: `sudo: a terminal is
-   required to read the password`.
-2. Same, with `id -u` root-check + `sudo -n` (non-interactive) fallback — failed
-   definitively: `sudo: a password is required`. Confirms the worker's user has no
-   passwordless sudo at all, root-owned install approaches are a dead end here.
-3. **Current**: install Node via `nvm` into `$HOME/.nvm` — no root/sudo needed at
-   all, since it's a pure user-space install. This is the version below.
+      npx --yes vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
+      ```
+- [x] **Confirmed working end-to-end**: release deploys to `dev` successfully, and
+      login at `dev.usereflow.app` works — verified by inspecting the live network
+      request (`apikey` header carries the real `sb_publishable_...` key, not a
+      placeholder).
+- [ ] Apply the same env-var fix to QUALITY and PROD (see "Root cause" below) —
+      they currently work via their old Vercel-native deploys, but will need this fix
+      before they're ever redeployed through Octopus.
+- [ ] Not started: manual intervention approval steps for `preprod`/`prod`. Add once
+      confident in the base deploy path (now proven for `dev`).
 
-### Fix — paste this updated script into the `Deploy to Vercel` step
+## Root cause (resolved) — Vercel "Sensitive" env vars break CLI-driven builds
 
-```bash
-set -euo pipefail
+`dev.usereflow.app` returned `invalid API key` on login after a successful-looking
+deploy. Diagnosed by fetching the live built JS bundle directly (via Playwright,
+bypassing browser devtools redaction) and finding the literal 11-character string
+`[SENSITIVE]` baked in at the exact position where the Supabase anon key should be
+— confirmed at the byte level, not a display artifact.
 
-echo "Deploying package to Vercel project #{VercelProjectId} (environment: #{Octopus.Environment.Name})"
+Cause: `VITE_SUPABASE_ANON_KEY` was marked **"Sensitive"** in Vercel (Vercel
+auto-suggests this for any var whose name contains `VITE_`/`key`). Per Vercel's docs,
+Sensitive values are only guaranteed readable "within the Vercel build container" —
+QUALITY/PROD worked because their live deployments were built by Vercel's own git
+integration (before we disabled it), which has that access. DEV's build runs via
+`vercel build` inside GitHub Actions, authenticated with a bare `--token`, which
+could not decrypt the Sensitive value and silently substituted a placeholder instead
+of failing loudly.
 
-if ! command -v npx >/dev/null 2>&1; then
-  echo "Node.js not found on worker, installing via nvm (no root needed)..."
-  export NVM_DIR="$HOME/.nvm"
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  nvm install 20
-  nvm use 20
-fi
+**Fix applied**: unmarked `VITE_SUPABASE_ANON_KEY` as Sensitive on the DEV Vercel
+project, triggered a fresh GitHub Actions run (new build = new bundle with the real
+value), created a new Octopus release, deployed to `dev`. Confirmed working.
 
-PACKAGE_DIR="#{Octopus.Action.Package[reflow].ExtractedPath}"
-cd "$PACKAGE_DIR"
+This is not a security regression — the Supabase anon/publishable key
+(`sb_publishable_...`) is designed to be public; it ships in client JS on every
+Supabase app by design. Real access control is enforced by RLS policies
+(`auth.uid() = user_id` on `tasks`), not by hiding this key. Discussed and confirmed
+with the user before unmarking.
 
-mkdir -p .vercel
-cat > .vercel/project.json <<EOF
-{
-  "projectId": "#{VercelProjectId}",
-  "orgId": "#{VercelOrgId}"
-}
-EOF
+**Still to do**: unmark Sensitive on `VITE_SUPABASE_ANON_KEY` for the **QUALITY and
+PROD** Vercel projects too, so they don't hit the same bug whenever they're first
+deployed through Octopus (they haven't been yet — still on old Vercel-native
+deploys).
 
-npx --yes vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
-```
+## Pre-launch follow-up (not part of devops-setup, don't lose this)
 
-### Next steps to finish this phase
-
-1. Open the `Deploy to Vercel` step, replace its script body with the fixed version
-   above, save.
-2. Deploy release `0.0.1` to `dev` again (Releases → `0.0.1` → "Deploy to dev...").
-   Watch for the Node install lines in the log, then confirm `npx vercel deploy`
-   actually runs and succeeds.
-3. If it succeeds: check `dev.usereflow.app` in a browser to confirm the real app is
-   live there (not just "Octopus said success" — verify the actual site).
-4. If it fails again: paste the new log — likely next candidates are Vercel auth
-   (`VercelToken` invalid/expired) or project linking (`VercelProjectId`/`VercelOrgId`
-   mismatch), not infrastructure this time.
-5. Once `dev` deploys are reliably green: add Manual Intervention approval steps for
-   `preprod`/`prod`. Add Step → search "Manual Intervention" → scope via "Configure
-   features" → Environments → "Run only for specific environments" → `preprod` +
-   `prod` → restrict approver to the human's Octopus user/team → **place this step
-   before `Deploy to Vercel` in the step order** (drag/reorder if Octopus appends it
-   at the bottom). No gate on `dev`.
-6. After that: deploy the same release to `preprod`, confirm the approval gate
-   actually pauses and requires a click, then approve and confirm it deploys to
-   `quality.usereflow.app` using the `preprod` schema/Vercel project. Repeat for
-   `prod` only when genuinely ready to go live — don't approve prod as a test.
+Before real users/payments go live, do a focused RLS/security audit: confirm every
+table in `supabase/migrations/` has RLS enabled with policies correctly scoping
+every operation (select/insert/update/delete) to the authenticated user, not just
+`tasks`. Explicitly deferred by the user during this session to keep focus on
+finishing the deploy pipeline — flagged here so it isn't forgotten before launch.
 
 ## Notes
 
@@ -157,3 +106,6 @@ npx --yes vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
   step definition runs for dev/preprod/prod, just with different variable values.
 - Don't build the Phase 2 "daily preprod reload from prod" as an Octopus runbook in
   this phase — out of scope per Phase 2's notes.
+- Full debugging history (sudo/root dead-ends, the `.vercel/output` packaging bug,
+  the release-snapshot gotcha, this Sensitive-var bug) is preserved in git history on
+  this file and in `.github/workflows/release.yml`'s commit messages.
