@@ -33,10 +33,11 @@ jobs:
       - name: Pull Vercel project config
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Inject build version
+        run: echo "VITE_APP_VERSION=1.0.${{ github.run_number }}" >> .vercel/.env.production.local
+
       - name: Build for Vercel
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VITE_APP_VERSION: 1.0.${{ github.run_number }}
 
       - name: Create package
         id: create_package
