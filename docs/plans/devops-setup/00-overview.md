@@ -4,51 +4,48 @@ Finishes the three-environment pipeline described in the `devops-workflow` skill
 DEV/QUALITY/PROD, each a separate Vercel project with its own Supabase database,
 promoted by **Octopus Deploy** from a single build produced on `main`.
 
-## Current state (as of 2026-08-15)
+## Current state (as of 2026-08-17) — pipeline is live and fully working
 
-- Repo `richard-uzik-accenture/OneCodeToRuleThemAll` is **public** (needed for
-  branch protection to enforce on the free GitHub plan). `main` requires PRs to
-  merge (0 required approvals — solo maintainer can't self-approve).
-- Branches: `dev` and `main` exist, `feature/combat-screen-polish` (pre-dates `dev`,
-  still needs retargeting — Phase 6) is the only other one. No `preprod` branch
-  (intentional — see skill).
+- Repo `richard-uzik-accenture/OneCodeToRuleThemAll` is **public**. `main` requires
+  PRs to merge (0 required approvals — solo maintainer can't self-approve).
+- Branches: `dev` and `main` exist, `feature/combat-screen-polish` (pre-dates `dev`)
+  still needs retargeting — Phase 6. No `preprod` branch (intentional).
 - Supabase: one project holds both DEV (`public` schema) and QUALITY (`preprod`
   schema, empty — data copy deferred), one separate project holds PROD. **PROD is
-  missing migrations 0002/0003** (`tags`/`due_time` columns) — flagged, unfixed.
-- Vercel: three projects exist (DEV/QUALITY/PROD), domains set, git auto-deploy
-  disabled ("Don't build anything"), env vars set on all three.
-- GitHub Actions: **fully working** (Phase 5, archived) — every push to `main`
-  builds, packages, and creates a real Octopus release.
-- Octopus Cloud: **the whole pipeline works end-to-end, including a working login**
-  — a release deploys to `dev` successfully (Node install via nvm, package
-  extraction, `vercel deploy --prebuilt` all succeed), and `dev.usereflow.app` is
-  live with working auth. Root cause of the earlier `invalid API key` bug: Vercel's
-  "Sensitive" env var flag on `VITE_SUPABASE_ANON_KEY` silently broke CLI-driven
-  builds (works fine for Vercel's own git-integration builds, which is why
-  QUALITY/PROD were unaffected). Fixed on DEV; **same fix still needed on
-  QUALITY/PROD** before they're ever deployed through Octopus. Full root-cause
-  writeup in Phase 4's file.
+  missing migrations 0002/0003** (`tags`/`due_time` columns) — flagged, unfixed,
+  not part of devops-setup.
+- Vercel: three projects (DEV/QUALITY/PROD), domains set, git auto-deploy disabled,
+  `VITE_SUPABASE_ANON_KEY` unmarked as "Sensitive" on all three (root-caused and
+  fixed this session — see Phase 4).
+- GitHub Actions (Phase 5, archived): every push to `main` builds via `vercel
+  build`, packages, and creates a matching-numbered Octopus release with commit
+  info in the release notes.
+- **Octopus Deploy (Phase 4): the full promotion pipeline is built, tested, and
+  has been used for a real production deployment.** `Approve Deployment` (Manual
+  Intervention, scoped to `preprod`+`prod`, approver team "Space Managers") gates
+  both environments; `dev` still auto-deploys. Verified live: a real release was
+  approved through preprod and then prod, and `usereflow.app` is confirmed serving
+  that exact build.
+- **Version traceability solved**: package version, Octopus release number, and an
+  in-app badge (bottom corner, `v0.0.16 · afb799e` format) all show the same
+  number and short commit SHA — you can look at any environment's live site and
+  know exactly which Octopus release and which GitHub commit it's running,
+  without needing to open Octopus. See Phase 4 for the versioning scheme notes
+  (deliberately manual minor-version bumps, no auto-bump).
 - **Pre-launch follow-up, not urgent now**: do a real RLS/security audit across all
-  Supabase tables before real users/payments — deliberately deferred this session,
-  flagged in Phase 4's file so it isn't lost.
+  Supabase tables before real users/payments — deliberately deferred, flagged in
+  Phase 4's file so it isn't lost.
 
-## Resume here next session
+## What's left
 
-1. Unmark `VITE_SUPABASE_ANON_KEY` as "Sensitive" on the **QUALITY** and **PROD**
-   Vercel projects too (already done on DEV) — same root cause would hit them the
-   first time either is deployed via Octopus.
-2. Add Manual Intervention approval steps for `preprod`/`prod` in Octopus (not done
-   yet — see Phase 4 for exact steps: Add Step → Manual Intervention → scope to
-   preprod+prod → restrict approver → place before `Deploy to Vercel` in step order).
-3. Deploy to `preprod` through Octopus for the first time, confirm the approval gate
-   pauses correctly, verify `quality.usereflow.app` serves correctly using the
-   `preprod` schema and login works there too.
-4. Only once genuinely ready: approve a real `prod` deploy through Octopus (never as
-   a test — this is the first time PROD would be deployed this way).
-5. Then Phase 6: retarget `feature/combat-screen-polish` onto `dev`, update README,
-   archive Phase 4 once its checklist is fully checked.
-6. Before real users/payments: circle back to the pre-launch RLS/security audit
-   noted above.
+1. **Nice-to-have, not yet built**: a way to approve preprod/prod deployments
+   outside Octopus's own web UI (e.g. a phone notification or email with an
+   approve action). Requested but not yet scoped/built — see Phase 4.
+2. Phase 6: retarget `feature/combat-screen-polish` onto `dev`, update README to
+   describe the branch model, archive Phase 4 once fully done.
+3. Before real users/payments: the RLS/security audit noted above.
+4. Optional cleanup: PROD's missing schema migrations (0002/0003) — unrelated bug
+   found during this work, still open.
 
 ## Target state
 
@@ -62,7 +59,7 @@ refactor/*  ─┘
                                                                 │
                                                                 ▼
                                                     GitHub Actions: build,
-                                                    octo pack / push / create-release
+                                                    package / push / create-release
                                                                 │
                                                                 ▼
                                               Octopus Deploy orchestrates one release:
@@ -71,32 +68,22 @@ refactor/*  ─┘
                                               └─ prod     (manual approval in Octopus)
 ```
 
-Key departure from the older per-branch-per-Vercel-project model: there is **no
-`preprod` git branch**. `main` is the only branch that produces a release; preprod and
-prod are Octopus deployment targets for that same release, not separate branches or
-separate CI triggers. See the `devops-workflow` skill for the full rationale and
-guardrails — this plan is just the ordered steps to build it.
+**This is now reality, not just a target** — confirmed working end-to-end this
+session. Key departure from the older per-branch-per-Vercel-project model: there is
+**no `preprod` git branch**. `main` is the only branch that produces a release;
+preprod and prod are Octopus deployment targets for that same release. See the
+`devops-workflow` skill for full rationale and guardrails.
 
 ## Phases
 
 | Phase | File | What it does |
 |---|---|---|
-| 1 | [01-branches.md](01-branches.md) | Create `dev`, protect `main`, retire the idea of a `preprod` branch |
-| 2 | [02-supabase-preprod.md](02-supabase-preprod.md) | New Supabase project for QUALITY, schema applied |
-| 3 | [03-vercel-projects.md](03-vercel-projects.md) | Three Vercel projects, git auto-deploy disabled, env vars set |
-| 4 | [04-octopus-setup.md](04-octopus-setup.md) | Octopus instance, project, environments, lifecycle, deploy steps, approvals |
+| 1 | archived | Create `dev`, protect `main` — done |
+| 2 | [02-supabase-preprod.md](02-supabase-preprod.md) | Supabase schema for QUALITY — done except unrelated prod-migration gap |
+| 3 | archived | Three Vercel projects, git auto-deploy disabled, env vars set — done |
+| 4 | [04-octopus-setup.md](04-octopus-setup.md) | Octopus instance, project, environments, lifecycle, deploy steps, approvals — **pipeline fully working**, nice-to-have notification still open |
 | 5 | archived | Build workflow on `main` that packages and hands off to Octopus — done |
-| 6 | [06-close-the-loop.md](06-close-the-loop.md) | Dry-run the whole pipeline, retarget in-flight feature branch, update docs |
+| 6 | [06-close-the-loop.md](06-close-the-loop.md) | Retarget in-flight feature branch, update docs |
 
-Work through phases in order — each depends on the previous one's outputs (e.g. Phase
-5's workflow needs the Octopus API key from Phase 4). A phase is done when every
-checkbox in its file is checked; move it to `archive/` at that point per the root
-`CLAUDE.md` convention.
-
-## Open question to resolve before Phase 4
-
-Confirm whether `richard-uzik-accenture/OneCodeToRuleThemAll` is private, and if so,
-whether it's on a plan that matters for any GitHub-side gating you still want (this
-plan no longer relies on GitHub Environments + required reviewers for approvals —
-Octopus's manual intervention step replaces that — but it's worth a sanity check that
-nothing else in the repo assumes GitHub-side environment protection).
+A phase is done when every checkbox in its file is checked; move it to `archive/` at
+that point per the root `CLAUDE.md` convention.

@@ -1,27 +1,25 @@
 # Phase 4 — Octopus Deploy setup
 
-**The full pipeline now works end-to-end, including a working login.** GitHub
-Actions builds and packages, Octopus deploys to `dev` via Vercel, and
-`dev.usereflow.app` serves a real, working app. What's left: apply the same fix to
-QUALITY/PROD's env vars, then add manual intervention approval steps for
-`preprod`/`prod`.
+**The full pipeline is built, tested, and has been used for a real production
+deployment.** GitHub Actions builds and packages on every push to `main`, creates
+a matching-numbered Octopus release, `dev` auto-deploys, `preprod`/`prod` require
+manual approval in Octopus, and a real release has been approved through all three
+environments — `usereflow.app` is confirmed live and serving that build. Only the
+"approve outside Octopus's web UI" nice-to-have remains unbuilt.
 
 ## Deliverables
 
 - [x] Provisioned Octopus Cloud (free Starter tier).
 - [x] Created environments, in order: `dev`, `preprod`, `prod`.
-- [x] Lifecycle: built-in **"Default Lifecycle"**, unmodified — its default
-      conventions already enforce dev → preprod → prod ordering.
-- [x] Created the Octopus project **`reflow`** (process/variables stored in Octopus,
-      not Config-as-Code; deploy target type "Other").
-- [x] Project variables added, one name per variable with environment-scoped rows
-      (`VercelToken`, `VercelOrgId`, `VercelProjectId`, `SupabaseUrl`,
-      `SupabaseAnonKey`, `SupabaseSchema`).
-- [x] Generated an Octopus API key for GitHub Actions (in the `OCTOPUS_API_KEY`
-      GitHub secret).
-- [x] `Deploy to Vercel` step: Run a Script, Bash, "Run once on a worker", Referenced
-      Package `reflow`. Working script (installs Node via `nvm` since the worker has
-      no root/sudo, then runs `vercel deploy --prebuilt`):
+- [x] Lifecycle: built-in **"Default Lifecycle"**, unmodified.
+- [x] Created the Octopus project **`reflow`**.
+- [x] Project variables: `VercelToken`, `VercelOrgId`, `VercelProjectId`,
+      `SupabaseUrl`, `SupabaseAnonKey`, `SupabaseSchema` — one name per variable,
+      environment-scoped rows.
+- [x] Generated an Octopus API key for GitHub Actions.
+- [x] `Deploy to Vercel` step (step 2 in the process): Run a Script, Bash, "Run once
+      on a worker", Referenced Package `reflow`. Installs Node via `nvm` (worker has
+      no root/sudo), then runs `vercel deploy --prebuilt`:
       ```bash
       set -euo pipefail
 
@@ -49,55 +47,73 @@ QUALITY/PROD's env vars, then add manual intervention approval steps for
 
       npx --yes vercel deploy --prebuilt --prod --token="#{VercelToken}" --yes
       ```
-- [x] **Confirmed working end-to-end**: release deploys to `dev` successfully, and
-      login at `dev.usereflow.app` works — verified by inspecting the live network
-      request (`apikey` header carries the real `sb_publishable_...` key, not a
-      placeholder).
-- [ ] Apply the same env-var fix to QUALITY and PROD (see "Root cause" below) —
-      they currently work via their old Vercel-native deploys, but will need this fix
-      before they're ever redeployed through Octopus.
-- [ ] Not started: manual intervention approval steps for `preprod`/`prod`. Add once
-      confident in the base deploy path (now proven for `dev`).
+- [x] Root-caused and fixed the `invalid API key` login bug — see "Env var fix"
+      below. Unmarked Sensitive on **all three** Vercel projects (DEV, QUALITY,
+      PROD), not just DEV.
+- [x] **Manual Intervention approval gate** — step 1 in the process, runs *before*
+      `Deploy to Vercel`:
+      - Step type: Manual Intervention, name `Approve Deployment`.
+      - Instructions text: "Review this release before promoting it to
+        #{Octopus.Environment.Name}. Confirm the deployment to the previous
+        environment looked correct before approving."
+      - Scoped via Configure features → Environments → "Run only for specific
+        environments" → `preprod` + `prod` (not `dev`, which stays automatic).
+      - **Responsible Teams: "Space Managers"**, not "Octopus Administrators" — the
+        account that created this Octopus Cloud instance is a Space Manager but
+        is *not* automatically a member of Octopus Administrators, and lacks the
+        `AdministerSystem` permission needed to add itself to that team. If
+        approvals ever get stuck on "must be assigned" with no way to assign,
+        check which team the step is actually scoped to and confirm your user is
+        really a member of it — don't assume instance-owner implies
+        Administrators membership.
+      - New steps append to the *end* of the process by default — this step had
+        to be manually reordered to run first. If Octopus's UI doesn't offer
+        drag-and-drop, look for a per-step reorder control (varies by version).
+- [x] **Verified working, for real**: deployed a release through `dev` (auto) →
+      `preprod` (approved, gate correctly paused first) → `prod` (approved).
+      `usereflow.app` confirmed serving that exact release.
+- [x] **Version traceability**: package version, Octopus `release_number`, and an
+      in-app badge all driven by the same `0.0.${{ github.run_number }}` value from
+      the GitHub Actions workflow (see `.github/workflows/release.yml`), plus the
+      short commit SHA. A device's live site directly shows e.g. `v0.0.16 ·
+      afb799e`, traceable to both the exact Octopus release and GitHub commit
+      without opening Octopus. Versioning is deliberately manual for the middle
+      number — stays `0.0.x` incrementing forever unless the user explicitly asks
+      to bump to `0.1.0` for a real milestone; nothing auto-bumps it.
+- [ ] **Not built — nice to have**: approve preprod/prod deployments from outside
+      Octopus's web UI (phone notification, email with an approve action, etc.).
+      Requested by the user, not yet scoped. Octopus Cloud has built-in
+      subscription/notification features (Slack, email, webhooks) that could
+      *notify* on a pending approval, but a notification alone isn't the same as
+      an *approve action* from that channel — investigate what Octopus actually
+      supports here (likely: notify via email/Slack that something is pending,
+      human still clicks through to the web UI to approve; a true one-tap mobile
+      approve would need more — e.g. a webhook receiver with its own auth) before
+      promising more than is realistic.
 
-## Root cause (resolved) — Vercel "Sensitive" env vars break CLI-driven builds
+## Env var fix — Vercel "Sensitive" flag breaks CLI-driven builds
 
 `dev.usereflow.app` returned `invalid API key` on login after a successful-looking
-deploy. Diagnosed by fetching the live built JS bundle directly (via Playwright,
-bypassing browser devtools redaction) and finding the literal 11-character string
-`[SENSITIVE]` baked in at the exact position where the Supabase anon key should be
-— confirmed at the byte level, not a display artifact.
+deploy. Root cause: `VITE_SUPABASE_ANON_KEY` was marked **"Sensitive"** in Vercel.
+Per Vercel's docs, Sensitive values are only guaranteed readable "within the Vercel
+build container" — QUALITY/PROD were unaffected at the time because their live
+deployments were built by Vercel's own git integration (before it was disabled),
+which has that access; DEV's build runs via `vercel build` inside GitHub Actions
+with a bare `--token`, which could not decrypt the Sensitive value and silently
+substituted the literal string `[SENSITIVE]` instead of failing loudly. Confirmed
+at the byte level by fetching the live built JS bundle directly via Playwright.
 
-Cause: `VITE_SUPABASE_ANON_KEY` was marked **"Sensitive"** in Vercel (Vercel
-auto-suggests this for any var whose name contains `VITE_`/`key`). Per Vercel's docs,
-Sensitive values are only guaranteed readable "within the Vercel build container" —
-QUALITY/PROD worked because their live deployments were built by Vercel's own git
-integration (before we disabled it), which has that access. DEV's build runs via
-`vercel build` inside GitHub Actions, authenticated with a bare `--token`, which
-could not decrypt the Sensitive value and silently substituted a placeholder instead
-of failing loudly.
-
-**Fix applied**: unmarked `VITE_SUPABASE_ANON_KEY` as Sensitive on the DEV Vercel
-project, triggered a fresh GitHub Actions run (new build = new bundle with the real
-value), created a new Octopus release, deployed to `dev`. Confirmed working.
-
-This is not a security regression — the Supabase anon/publishable key
-(`sb_publishable_...`) is designed to be public; it ships in client JS on every
-Supabase app by design. Real access control is enforced by RLS policies
-(`auth.uid() = user_id` on `tasks`), not by hiding this key. Discussed and confirmed
-with the user before unmarking.
-
-**Still to do**: unmark Sensitive on `VITE_SUPABASE_ANON_KEY` for the **QUALITY and
-PROD** Vercel projects too, so they don't hit the same bug whenever they're first
-deployed through Octopus (they haven't been yet — still on old Vercel-native
-deploys).
+Not a security regression: the Supabase anon/publishable key is designed to be
+public (ships in client JS on every Supabase app); real access control is RLS
+policies (`auth.uid() = user_id` on `tasks`), not hiding this key. Confirmed with
+the user before unmarking. Fixed on all three Vercel projects.
 
 ## Pre-launch follow-up (not part of devops-setup, don't lose this)
 
 Before real users/payments go live, do a focused RLS/security audit: confirm every
 table in `supabase/migrations/` has RLS enabled with policies correctly scoping
 every operation (select/insert/update/delete) to the authenticated user, not just
-`tasks`. Explicitly deferred by the user during this session to keep focus on
-finishing the deploy pipeline — flagged here so it isn't forgotten before launch.
+`tasks`. Deliberately deferred to keep focus on finishing the deploy pipeline.
 
 ## Notes
 
@@ -107,5 +123,6 @@ finishing the deploy pipeline — flagged here so it isn't forgotten before laun
 - Don't build the Phase 2 "daily preprod reload from prod" as an Octopus runbook in
   this phase — out of scope per Phase 2's notes.
 - Full debugging history (sudo/root dead-ends, the `.vercel/output` packaging bug,
-  the release-snapshot gotcha, this Sensitive-var bug) is preserved in git history on
-  this file and in `.github/workflows/release.yml`'s commit messages.
+  the release-snapshot gotcha, the Sensitive-var bug, the version-sync fix) is
+  preserved in git history on this file and in `.github/workflows/release.yml`'s
+  commit messages.
