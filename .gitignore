@@ -6,3 +6,4 @@ dist
 .impeccable/hook.cache.json
 .impeccable/questions/
 .vercel
+.playwright-mcp
