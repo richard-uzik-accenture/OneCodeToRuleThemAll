@@ -4,7 +4,7 @@ Finishes the three-environment pipeline described in the `devops-workflow` skill
 DEV/QUALITY/PROD, each a separate Vercel project with its own Supabase database,
 promoted by **Octopus Deploy** from a single build produced on `main`.
 
-## Current state (as of 2026-08-17) — pipeline is live and fully working
+## Current state (as of 2026-08-18) — pipeline works, one notification-UX bug open
 
 - Repo `richard-uzik-accenture/OneCodeToRuleThemAll` is **public**. `main` requires
   PRs to merge (0 required approvals — solo maintainer can't self-approve).
@@ -15,32 +15,40 @@ promoted by **Octopus Deploy** from a single build produced on `main`.
   missing migrations 0002/0003** (`tags`/`due_time` columns) — flagged, unfixed,
   not part of devops-setup.
 - Vercel: three projects (DEV/QUALITY/PROD), domains set, git auto-deploy disabled,
-  `VITE_SUPABASE_ANON_KEY` unmarked as "Sensitive" on all three (root-caused and
-  fixed this session — see Phase 4).
+  `VITE_SUPABASE_ANON_KEY` unmarked as "Sensitive" on all three.
 - GitHub Actions (Phase 5, archived): every push to `main` builds via `vercel
   build`, packages, and creates a matching-numbered Octopus release with commit
   info in the release notes.
 - **Octopus Deploy (Phase 4): the full promotion pipeline is built, tested, and
-  has been used for a real production deployment.** `Approve Deployment` (Manual
-  Intervention, scoped to `preprod`+`prod`, approver team "Space Managers") gates
-  both environments; `dev` still auto-deploys. Verified live: a real release was
-  approved through preprod and then prod, and `usereflow.app` is confirmed serving
-  that exact build.
-- **Version traceability solved**: package version, Octopus release number, and an
+  has been used for a real production deployment.** `dev` genuinely auto-deploys
+  (via an explicit Lifecycle phase with auto-deploy on — this needed a real fix
+  mid-session, "default conventions" alone does NOT auto-deploy, see Phase 4).
+  `preprod`/`prod` require manual trigger + `Approve Deployment` (Manual
+  Intervention, approver team "Space Managers"). A real release has been deployed
+  through all three environments, `usereflow.app` confirmed serving it.
+- **Version traceability**: package version, Octopus release number, and an
   in-app badge (bottom corner, `v0.0.16 · afb799e` format) all show the same
-  number and short commit SHA — you can look at any environment's live site and
-  know exactly which Octopus release and which GitHub commit it's running,
-  without needing to open Octopus. See Phase 4 for the versioning scheme notes
-  (deliberately manual minor-version bumps, no auto-bump).
+  number and short commit SHA.
+- **Outside-web-UI notifications: built, but with an open bug.** iPhone push via
+  Octopus Subscription → Pushcut, fires when `dev` or `preprod` finishes
+  deploying (prompting you to trigger the next stage). **The notification's link
+  currently opens Octopus's generic Tasks page, which has nothing useful on it at
+  that moment** — you still have to self-navigate to Releases. This is the
+  concrete thing to fix first next session — see Phase 4's "Open problem" section
+  for three ranked options.
+- **Task hygiene note**: Octopus manual interventions never auto-timeout and
+  there's no bulk-cancel — cancel abandoned test deploys explicitly, don't just
+  navigate away, or Octopus Cloud's task-slot cap could eventually block new
+  deployments. Zero stuck tasks as of end of this session.
 - **Pre-launch follow-up, not urgent now**: do a real RLS/security audit across all
   Supabase tables before real users/payments — deliberately deferred, flagged in
   Phase 4's file so it isn't lost.
 
 ## What's left
 
-1. **Nice-to-have, not yet built**: a way to approve preprod/prod deployments
-   outside Octopus's own web UI (e.g. a phone notification or email with an
-   approve action). Requested but not yet scoped/built — see Phase 4.
+1. **Fix first**: the dev/preprod-success Pushcut notification links to the wrong
+   Octopus page (Tasks instead of somewhere the next deploy can actually be
+   triggered from). Phase 4 has 3 ranked options, cheapest first.
 2. Phase 6: retarget `feature/combat-screen-polish` onto `dev`, update README to
    describe the branch model, archive Phase 4 once fully done.
 3. Before real users/payments: the RLS/security audit noted above.
