@@ -1,4 +1,5 @@
 const version = import.meta.env.VITE_APP_VERSION;
+const commit = import.meta.env.VITE_APP_COMMIT;
 
 export function VersionBadge() {
   if (!version) return null;
@@ -17,7 +18,7 @@ export function VersionBadge() {
         zIndex: 9999,
       }}
     >
-      v{version}
+      v{version}{commit ? ` · ${commit}` : ''}
     </div>
   );
 }
