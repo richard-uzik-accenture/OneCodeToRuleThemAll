@@ -7,6 +7,7 @@ import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Today } from './pages/Today';
 import { VersionBadge } from './components/VersionBadge';
+import { Analytics } from '@vercel/analytics/next';
 
 function App() {
   const { session, loading } = useAuth();
@@ -37,6 +38,7 @@ function App() {
         </motion.div>
       </AnimatePresence>
       <VersionBadge />
+      <Analytics />
     </>
   );
 }
