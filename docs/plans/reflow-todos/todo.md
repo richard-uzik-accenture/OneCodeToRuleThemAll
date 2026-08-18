@@ -1,4 +1,4 @@
-- CLAUDE.md rework
+- CLAUDE.md rework - Done
 - empty states
 - error states
 - loading -> skeletons
