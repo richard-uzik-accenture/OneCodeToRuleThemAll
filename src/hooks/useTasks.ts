@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { listActiveTasks, createTask, updateTask, updateTaskStatus, updateTaskRanks, markTriaged, normalizeTask, type Task } from '../lib/tasks';
+import { listActiveTasks, createTask, updateTask, updateTaskStatus, updateTaskRanks, markTriaged, hasCompletedToday, normalizeTask, type Task } from '../lib/tasks';
 import { rankBetween, renumber } from '../lib/ranking';
 import { upsertActiveTask } from '../lib/realtimeMerge';
 import { supabase } from '../lib/supabase';
@@ -11,12 +11,17 @@ export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [completedToday, setCompletedToday] = useState(false);
 
   const reload = useCallback(async () => {
     if (!session) return;
     setLoading(true);
-    const data = DEV_MODE ? await mockTasksApi.list() : await listActiveTasks();
+    const [data, completed] = await Promise.all([
+      DEV_MODE ? mockTasksApi.list() : listActiveTasks(),
+      DEV_MODE ? mockTasksApi.hasCompletedToday() : hasCompletedToday(),
+    ]);
     setTasks(data);
+    setCompletedToday(completed);
     setLoading(false);
   }, [session]);
 
@@ -84,6 +89,7 @@ export function useTasks() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     try {
       await (DEV_MODE ? mockTasksApi.updateStatus(id, 'done') : updateTaskStatus(id, 'done'));
+      setCompletedToday(true);
     } catch {
       setTasks(previous);
       setError("couldn't mark that settled — try again");
@@ -139,7 +145,7 @@ export function useTasks() {
   }
 
   return {
-    tasks, loading, error, dismissError: () => setError(null),
+    tasks, loading, error, dismissError: () => setError(null), completedToday,
     addTask, insertTaskAtIndex, completeTask, editTask, dropTask, reorderTasks, commitReorder, keepLeftover, reload,
   };
 }

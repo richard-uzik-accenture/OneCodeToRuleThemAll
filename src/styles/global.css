@@ -242,7 +242,36 @@ button {
   }
 }
 
+.task-row-skeleton {
+  height: 51px;
+  border-radius: 14px;
+  background: var(--mist);
+  margin-bottom: 8px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .empty-state { color: var(--dusk); font-family: var(--font-body); padding: 18px 0; }
+.empty-state-headline { margin: 0; }
+.empty-state-support { margin: 6px 0 0; font-size: 13px; color: var(--dusk); }
+.empty-state-action {
+  margin-top: 14px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: none;
+  background: var(--violet);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.empty-state-action:hover { box-shadow: 0 10px 24px -10px rgba(75, 63, 143, 0.6); }
+.empty-state-action:active { transform: scale(0.98); }
+.empty-state-action:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .task-list { display: flex; flex-direction: column; }
 
 .fab {
@@ -488,6 +517,8 @@ button {
 .tag-suggest li.tag-suggest-active {
   background: var(--mist);
 }
+.tag-suggest-empty { color: var(--dusk); cursor: default; }
+.tag-suggest-empty:hover { background: none; }
 
 /* The compare duel — a full-bleed decision screen, not a modal. Opaque paper
    ground so the day list behind it is fully gone; the swipeable stack is the
@@ -722,6 +753,7 @@ button {
 .braindump-add:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
 .braindump-list { margin: 16px 0 0; list-style: none; padding: 0; }
 .braindump-entry { padding: 8px 0; color: var(--ink); font-size: 14px; border-bottom: 1px solid var(--mist); }
+.braindump-entry-placeholder { padding: 8px 0; color: var(--dusk); font-size: 14px; }
 .braindump-done {
   margin-top: 20px;
   width: 100%;

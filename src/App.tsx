@@ -7,16 +7,20 @@ import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Today } from './pages/Today';
 import { VersionBadge } from './components/VersionBadge';
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const { session, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const reducedMotion = useReducedMotion();
 
-  if (loading) return null;
-
-  const screen = session ? 'today' : showAuth ? 'auth' : 'landing';
+  // Optimistic: most visits are an already-authenticated user landing on
+  // Today, so render Today immediately (it shows its own loading skeleton)
+  // instead of a blank screen while the session check resolves — this keeps
+  // the whole load as one continuous skeleton-to-content transition instead
+  // of an extra screen swap. If it turns out there's no session, this
+  // cross-fades into Landing/Auth like any other screen swap.
+  const screen = loading || session ? 'today' : showAuth ? 'auth' : 'landing';
 
   // Note: Today's fixed-position overlays (FAB, add-task modal, compare duel,
   // morning flow) are portaled to document.body so the page-transition

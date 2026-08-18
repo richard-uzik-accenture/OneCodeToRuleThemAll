@@ -11,6 +11,7 @@ import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
 import { MorningFlow } from '../components/MorningFlow';
 import { TaskModal } from '../components/TaskModal';
+import { TaskListSkeleton } from '../components/TaskListSkeleton';
 import { InstallPrompt } from '../components/InstallPrompt';
 import { SignOut } from '../components/icons/SignOut';
 import type { Task } from '../lib/tasks';
@@ -18,7 +19,7 @@ import { allKnownTags } from '../lib/tags';
 
 export function Today() {
   const {
-    tasks, loading, error, dismissError, addTask, completeTask, editTask, dropTask,
+    tasks, loading, error, dismissError, completedToday, addTask, completeTask, editTask, dropTask,
     reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -32,10 +33,9 @@ export function Today() {
   const rollover = useRolloverPrompt(tasks);
   const knownTags = allKnownTags(tasks);
 
-  if (loading) return null;
-
   const keptCount = tasks.filter((t) => t.last_triaged_on === new Date().toISOString().slice(0, 10)).length;
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const allClear = tasks.length === 0 && completedToday;
 
   return (
     <>
@@ -75,12 +75,12 @@ export function Today() {
         <span className="wordmark">reflow</span>
         <div className="day-meta">
           <span className="date">{today.toLowerCase()}</span>
-          <span className="count">{tasks.length} today</span>
+          {!loading && <span className="count">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
         </div>
-        {tasks.length > 0 && (
+        {!loading && (
           <div className="rail-glance">
             <span className="rail-glance-label">up next</span>
-            <span className="rail-glance-task">{tasks[0].title}</span>
+            <span className="rail-glance-task">{tasks.length > 0 ? tasks[0].title : 'nothing queued'}</span>
           </div>
         )}
         <div className="rail-spacer" />
@@ -91,7 +91,7 @@ export function Today() {
       <header className="today-header-mobile">
         <span className="wordmark">reflow</span>
         <div className="header-right">
-          <span className="count-chip">{tasks.length} today</span>
+          {!loading && <span className="count-chip">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
           <button className="header-signout" aria-label="sign out" onClick={signOut}>
             <SignOut width={20} height={20} />
           </button>
@@ -123,16 +123,24 @@ export function Today() {
           </div>
         )}
         <h1 className="list-heading">today</h1>
-        <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
-        <TaskList
-          tasks={tasks}
-          onComplete={completeTask}
-          onDrop={dropTask}
-          onReorder={reorderTasks}
-          onReorderCommit={commitReorder}
-          onEdit={setEditingTask}
-          dimmed={active}
-        />
+        {!loading && (
+          <p className="list-sub">
+            {allClear ? "today's settled." : `${tasks.length} thing${tasks.length === 1 ? '' : 's'}, in order.`}
+          </p>
+        )}
+        {loading ? (
+          <TaskListSkeleton />
+        ) : (
+          <TaskList
+            tasks={tasks}
+            onComplete={completeTask}
+            onDrop={dropTask}
+            onReorder={reorderTasks}
+            onReorderCommit={commitReorder}
+            onEdit={setEditingTask}
+            dimmed={active}
+          />
+        )}
       </main>
 
     </div>

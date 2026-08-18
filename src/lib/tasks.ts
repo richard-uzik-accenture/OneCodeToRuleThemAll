@@ -73,3 +73,17 @@ export async function markTriaged(taskId: string): Promise<void> {
   const { error } = await supabase.from('tasks').update({ last_triaged_on: today }).eq('id', taskId);
   if (error) throw error;
 }
+
+/** Whether the signed-in user has completed at least one task today — used to tell a genuine "cleared my list" moment apart from a brand-new account with nothing completed yet. */
+export async function hasCompletedToday(): Promise<boolean> {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { count, error } = await supabase
+    .from('tasks')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'done')
+    .gte('completed_at', startOfDay.toISOString());
+
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}
