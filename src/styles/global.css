@@ -68,6 +68,17 @@ button {
   .today-main { padding: 48px 40px 64px; }
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-lockup-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
 .wordmark {
   font-family: var(--font-display);
   font-size: 20px;
@@ -976,6 +987,18 @@ button {
   border: 0;
 }
 
+.app-loading {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+}
+.app-loading-mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+
 .landing-shell {
   min-height: 100%;
   display: grid;
@@ -990,9 +1013,9 @@ button {
   padding: 40px 32px;
 }
 .landing-mark {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
   margin-bottom: 24px;
   box-shadow: 0 16px 32px -14px rgba(23, 19, 53, 0.45);
 }
@@ -1041,7 +1064,7 @@ button {
 .landing-cta:active { transform: translateY(0); }
 
 @media (min-width: 640px) {
-  .landing-mark { width: 64px; height: 64px; margin-bottom: 28px; }
+  .landing-mark { width: 84px; height: 84px; margin-bottom: 28px; }
   .landing-wordmark { font-size: 52px; }
   .landing-tagline { font-size: 19px; }
 }
@@ -1081,12 +1104,6 @@ button {
   border-radius: 24px;
   padding: 32px 28px;
   box-shadow: 0 24px 48px -20px rgba(23, 19, 53, 0.28);
-}
-.auth-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  margin-bottom: 14px;
 }
 .auth-wordmark {
   font-family: var(--font-display);

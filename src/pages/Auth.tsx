@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { Mark } from '../components/icons/Mark';
 import { ChevronLeft } from '../components/icons/ChevronLeft';
 import { GoogleMark } from '../components/icons/GoogleMark';
 import { GithubMark } from '../components/icons/GithubMark';
@@ -87,7 +86,6 @@ export function Auth({ onBack }: AuthProps) {
       <div className="auth-frame">
         <BorderGlow borderRadius={24} glowRadius={28} edgeSensitivity={40}>
           <div className="auth-card">
-            <Mark className="auth-mark" aria-hidden="true" />
             <h1 className="auth-wordmark">reflow</h1>
 
             {confirmationSent ? (

@@ -13,6 +13,7 @@ import { MorningFlow } from '../components/MorningFlow';
 import { TaskModal } from '../components/TaskModal';
 import { TaskListSkeleton } from '../components/TaskListSkeleton';
 import { InstallPrompt } from '../components/InstallPrompt';
+import { Mark } from '../components/icons/Mark';
 import { SignOut } from '../components/icons/SignOut';
 import type { Task } from '../lib/tasks';
 import { allKnownTags } from '../lib/tags';
@@ -90,7 +91,10 @@ export function Today() {
 
     <div className="today-shell">
       <aside className="today-rail">
-        <span className="wordmark">reflow</span>
+        <div className="brand-lockup">
+          <Mark className="brand-lockup-mark" aria-hidden="true" />
+          <span className="wordmark">reflow</span>
+        </div>
         <div className="day-meta">
           <span className="date">{today.toLowerCase()}</span>
           {!loading && <span className="count">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
@@ -109,7 +113,10 @@ export function Today() {
       </aside>
 
       <header className="today-header-mobile">
-        <span className="wordmark">reflow</span>
+        <div className="brand-lockup">
+          <Mark className="brand-lockup-mark" aria-hidden="true" />
+          <span className="wordmark">reflow</span>
+        </div>
         <div className="header-right">
           {!loading && <span className="count-chip">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
           <button
