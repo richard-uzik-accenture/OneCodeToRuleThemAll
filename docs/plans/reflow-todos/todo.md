@@ -1,6 +1,6 @@
 - CLAUDE.md rework - Done
-- empty states
-- error states
+- empty states - done
+- error states 
 - loading -> skeletons
 - visible feedback / confirmations on each action 
 - duel rework

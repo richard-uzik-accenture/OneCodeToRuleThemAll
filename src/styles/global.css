@@ -398,6 +398,13 @@ button {
   transition: border-color 0.15s ease;
 }
 .modal-input:focus { outline: none; border-color: var(--violet-soft); }
+.modal-input-error { border-color: var(--signal-coral); }
+.modal-field-error {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--signal-coral);
+  margin: -10px 0 16px;
+}
 .modal-cancel {
   font-family: var(--font-body);
   font-size: 13px;
@@ -682,7 +689,21 @@ button {
   box-shadow: 0 18px 36px -14px rgba(23, 19, 53, 0.5);
 }
 
-.leftover-shell { display: grid; place-items: center; min-height: 70vh; min-height: 70dvh; padding: 24px; }
+.leftover-step { display: contents; }
+.leftover-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--mist);
+  padding: 10px 16px;
+  margin: 0;
+}
+.leftover-shell { display: grid; place-items: center; min-height: 70vh; min-height: 70dvh; padding: 24px; position: relative; }
 .leftover-kicker {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -930,6 +951,15 @@ button {
 }
 .error-dismiss:hover { background: var(--haze); color: var(--ink); }
 .error-dismiss:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
+
+.realtime-stale-banner {
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: var(--haze);
+  color: var(--dusk);
+  font-size: 12px;
+  margin-bottom: 18px;
+}
 
 .visually-hidden {
   position: absolute;

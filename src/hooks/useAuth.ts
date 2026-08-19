@@ -6,14 +6,21 @@ import { DEV_MODE, mockSession } from '../lib/devMock';
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(DEV_MODE ? mockSession : null);
   const [loading, setLoading] = useState(!DEV_MODE);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (DEV_MODE) return;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('getSession failed', err);
+        setSessionError("couldn't verify your session — check your connection and try again");
+        setLoading(false);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
@@ -37,8 +44,12 @@ export function useAuth() {
       setSession(null);
       return;
     }
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('signOut failed', error);
+      setSessionError("couldn't sign you out — check your connection and try again");
+    }
   }
 
-  return { session, loading, signIn, signUp, signOut };
+  return { session, loading, sessionError, dismissSessionError: () => setSessionError(null), signIn, signUp, signOut };
 }

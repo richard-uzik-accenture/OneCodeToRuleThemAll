@@ -13,10 +13,24 @@ interface AuthProps {
 const KNOWN_ERRORS: Record<string, string> = {
   'Invalid login credentials': "that password doesn't match",
   'User already registered': 'looks like you already have an account — try signing in',
+  'Email not confirmed': 'that email still needs confirming — check your inbox',
+  'Password should be at least 6 characters': 'needs to be at least 6 characters',
+  'Signup requires a valid password': 'that password looks too short — try a longer one',
+  'Unable to validate email address: invalid format': "that doesn't look like a valid email",
 };
 
-function toBrandVoice(message: string): string {
-  return KNOWN_ERRORS[message] ?? message;
+function fallbackError(mode: 'signin' | 'signup'): string {
+  return mode === 'signin'
+    ? "couldn't sign you in — check your details and try again"
+    : "couldn't create your account — check your details and try again";
+}
+
+function toBrandVoice(message: string, mode: 'signin' | 'signup'): string {
+  if (KNOWN_ERRORS[message]) return KNOWN_ERRORS[message];
+  if (/rate limit|security purposes/i.test(message)) {
+    return "too many tries — wait a moment and try again";
+  }
+  return fallbackError(mode);
 }
 
 export function Auth({ onBack }: AuthProps) {
@@ -34,7 +48,7 @@ export function Auth({ onBack }: AuthProps) {
     setError(null);
     const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password);
     setSubmitting(false);
-    if (error) setError(toBrandVoice(error));
+    if (error) setError(toBrandVoice(error, mode));
   }
 
   return (

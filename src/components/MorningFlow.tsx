@@ -13,6 +13,7 @@ interface MorningFlowProps {
   remaining: number;
   tasks: Task[];
   keptCount: number;
+  leftoverError: string | null;
   onResolveLeftover: (keep: boolean) => void;
   onAddBrainDumpTask: (title: string) => void;
   onFinishBrainDump: () => void;
@@ -61,12 +62,15 @@ export function MorningFlow(props: MorningFlowProps) {
           exit="exit"
         >
           {step === 'leftover' && props.currentLeftover && (
-            <LeftoverCard
-              key={props.currentLeftover.id}
-              task={props.currentLeftover}
-              remaining={props.remaining}
-              onResolve={props.onResolveLeftover}
-            />
+            <div className="leftover-step">
+              {props.leftoverError && <p className="leftover-error" role="alert">{props.leftoverError}</p>}
+              <LeftoverCard
+                key={`${props.currentLeftover.id}-${props.leftoverError ?? 'ok'}`}
+                task={props.currentLeftover}
+                remaining={props.remaining}
+                onResolve={props.onResolveLeftover}
+              />
+            </div>
           )}
           {step === 'braindump' && <BrainDump onAdd={props.onAddBrainDumpTask} onDone={props.onFinishBrainDump} />}
           {step === 'merge' && (

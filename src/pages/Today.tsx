@@ -19,11 +19,11 @@ import { allKnownTags } from '../lib/tags';
 
 export function Today() {
   const {
-    tasks, loading, error, dismissError, completedToday, addTask, completeTask, editTask, dropTask,
+    tasks, loading, error, dismissError, completedToday, realtimeStale, addTask, completeTask, editTask, dropTask,
     reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const { signOut } = useAuth();
+  const { signOut, sessionError, dismissSessionError } = useAuth();
   const { pendingTitle, candidate, active, placedAt, progress, begin, decide } = useCompareInsertion({
     tasks,
     onInsert: insertTaskAtIndex,
@@ -54,6 +54,7 @@ export function Today() {
               remaining={morning.remaining}
               tasks={tasks}
               keptCount={keptCount}
+              leftoverError={morning.leftoverError}
               onResolveLeftover={morning.resolveLeftover}
               onAddBrainDumpTask={morning.addBrainDumpTask}
               onFinishBrainDump={morning.finishBrainDump}
@@ -99,7 +100,7 @@ export function Today() {
       </header>
 
       <main className="today-main">
-        <div aria-live="polite" className="visually-hidden">{error}</div>
+        <div aria-live="polite" className="visually-hidden">{error || sessionError}</div>
         <AnimatePresence>
           {error && (
             <motion.div
@@ -113,7 +114,24 @@ export function Today() {
               <button className="error-dismiss" onClick={dismissError}>dismiss</button>
             </motion.div>
           )}
+          {sessionError && (
+            <motion.div
+              className="error-banner"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 18 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span>{sessionError}</span>
+              <button className="error-dismiss" onClick={dismissSessionError}>dismiss</button>
+            </motion.div>
+          )}
         </AnimatePresence>
+        {realtimeStale && (
+          <div className="realtime-stale-banner" role="status">
+            live updates paused — changes may not sync until you reload
+          </div>
+        )}
         {rollover.hasLeftovers && !rollover.dismissed && (
           <div className="rollover-banner">
             <button className="rollover-prompt" onClick={morning.start}>

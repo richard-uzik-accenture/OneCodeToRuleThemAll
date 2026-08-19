@@ -16,12 +16,16 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
   const [value, setValue] = useState(initial?.title ?? '');
   const [tags, setTags] = useState(initial?.tags ?? []);
   const [dueTime, setDueTime] = useState(initial?.due_time ?? '');
+  const [titleError, setTitleError] = useState<string | null>(null);
   const reducedMotion = useReducedMotion();
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const title = value.trim();
-    if (!title) return;
+    if (!title) {
+      setTitleError('give this task a name');
+      return;
+    }
     if (mode === 'edit') {
       onSubmit({ title, tags, due_time: dueTime || null });
     } else {
@@ -51,13 +55,18 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
         </label>
         <input
           id="task-modal-input"
-          className="modal-input"
+          className={titleError ? 'modal-input modal-input-error' : 'modal-input'}
           type="text"
           autoFocus
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (titleError) setTitleError(null);
+          }}
           placeholder="e.g. call the plumber back"
+          aria-invalid={titleError ? true : undefined}
         />
+        {titleError && <p className="modal-field-error" role="alert">{titleError}</p>}
         <label className="modal-label" htmlFor="task-modal-tags">tags</label>
         <TagInput value={tags} known={knownTags} onChange={setTags} />
         {mode === 'edit' && (
