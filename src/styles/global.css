@@ -140,6 +140,9 @@ button {
 }
 .header-signout:hover { background: var(--mist); color: var(--ink); }
 .header-signout:focus-visible { outline: 2px solid var(--violet-soft); outline-offset: 2px; }
+.rail-signout:disabled, .header-signout:disabled { opacity: 0.6; cursor: default; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.7s linear infinite; }
 .count-chip {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1136,6 +1139,52 @@ button {
   transition: opacity 0.15s ease;
 }
 .auth-submit:disabled { opacity: 0.6; cursor: default; }
+.auth-confirmation {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0;
+  text-align: center;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  color: var(--dusk);
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--haze);
+}
+.auth-oauth-group { display: grid; gap: 8px; }
+.auth-oauth-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--haze);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.auth-oauth-button:hover { background: var(--mist); }
+.auth-oauth-button:disabled { opacity: 0.6; cursor: default; }
 .auth-switch {
   width: 100%;
   text-align: center;

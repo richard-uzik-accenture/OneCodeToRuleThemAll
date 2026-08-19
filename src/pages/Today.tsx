@@ -40,7 +40,7 @@ export function Today() {
       window.setTimeout(() => setFailedRowId((current) => (current === id ? null : current)), 2000);
     }
   }
-  const { signOut, sessionError, dismissSessionError } = useAuth();
+  const { signOut, signingOut, sessionError, dismissSessionError } = useAuth();
   const { pendingTitle, candidate, active, placedAt, progress, begin, decide } = useCompareInsertion({
     tasks,
     onInsert: insertTaskAtIndex,
@@ -103,15 +103,22 @@ export function Today() {
         )}
         <div className="rail-spacer" />
         <button className="rail-action" onClick={morning.start}>start my day</button>
-        <button className="rail-signout" onClick={signOut}>sign out</button>
+        <button className="rail-signout" onClick={signOut} disabled={signingOut}>
+          {signingOut ? 'signing out…' : 'sign out'}
+        </button>
       </aside>
 
       <header className="today-header-mobile">
         <span className="wordmark">reflow</span>
         <div className="header-right">
           {!loading && <span className="count-chip">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
-          <button className="header-signout" aria-label="sign out" onClick={signOut}>
-            <SignOut width={20} height={20} />
+          <button
+            className="header-signout"
+            aria-label={signingOut ? 'signing out' : 'sign out'}
+            onClick={signOut}
+            disabled={signingOut}
+          >
+            <SignOut width={20} height={20} className={signingOut ? 'spin' : undefined} />
           </button>
         </div>
       </header>

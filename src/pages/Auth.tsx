@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Mark } from '../components/icons/Mark';
 import { ChevronLeft } from '../components/icons/ChevronLeft';
+import { GoogleMark } from '../components/icons/GoogleMark';
+import { GithubMark } from '../components/icons/GithubMark';
 import { BorderGlow } from '../components/BorderGlow';
 
 interface AuthProps {
@@ -18,6 +20,8 @@ const KNOWN_ERRORS: Record<string, string> = {
   'Signup requires a valid password': 'that password looks too short — try a longer one',
   'Unable to validate email address: invalid format': "that doesn't look like a valid email",
 };
+
+type OAuthProvider = 'google' | 'github';
 
 function fallbackError(mode: 'signin' | 'signup'): string {
   return mode === 'signin'
@@ -34,21 +38,45 @@ function toBrandVoice(message: string, mode: 'signin' | 'signup'): string {
 }
 
 export function Auth({ onBack }: AuthProps) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithGithub } = useAuth();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
+  const [oauthPending, setOauthPending] = useState<OAuthProvider | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password);
+    if (mode === 'signin') {
+      const { error } = await signIn(email, password);
+      setSubmitting(false);
+      if (error) setError(toBrandVoice(error, mode));
+      return;
+    }
+    const { error, confirmationSent } = await signUp(email, password);
     setSubmitting(false);
-    if (error) setError(toBrandVoice(error, mode));
+    if (error) {
+      setError(toBrandVoice(error, mode));
+    } else if (confirmationSent) {
+      setConfirmationSent(true);
+    }
+  }
+
+  async function handleOAuth(provider: OAuthProvider) {
+    setOauthPending(provider);
+    setError(null);
+    const { error } = provider === 'google' ? await signInWithGoogle() : await signInWithGithub();
+    if (error) {
+      setOauthPending(null);
+      setError(toBrandVoice(error, mode));
+    }
+    // On success the browser navigates away to the provider, so no need to
+    // clear oauthPending here — it stays disabled until the redirect happens.
   }
 
   return (
@@ -62,6 +90,9 @@ export function Auth({ onBack }: AuthProps) {
             <Mark className="auth-mark" aria-hidden="true" />
             <h1 className="auth-wordmark">reflow</h1>
 
+            {confirmationSent ? (
+              <p className="auth-confirmation">check your email to confirm your account</p>
+            ) : (
             <form onSubmit={handleSubmit} className="auth-form">
               <input
                 type="email"
@@ -99,8 +130,45 @@ export function Auth({ onBack }: AuthProps) {
                 {submitting ? (mode === 'signin' ? 'signing in…' : 'creating account…') : mode === 'signin' ? 'sign in' : 'sign up'}
               </button>
             </form>
+            )}
 
-            <button type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="auth-switch">
+            {!confirmationSent && (
+              <>
+                <div className="auth-divider" role="separator">
+                  <span>or</span>
+                </div>
+                <div className="auth-oauth-group">
+                  <button
+                    type="button"
+                    className="auth-oauth-button"
+                    onClick={() => handleOAuth('google')}
+                    disabled={oauthPending !== null}
+                  >
+                    <GoogleMark aria-hidden="true" />
+                    {oauthPending === 'google' ? 'redirecting…' : 'continue with Google'}
+                  </button>
+                  <button
+                    type="button"
+                    className="auth-oauth-button"
+                    onClick={() => handleOAuth('github')}
+                    disabled={oauthPending !== null}
+                  >
+                    <GithubMark aria-hidden="true" />
+                    {oauthPending === 'github' ? 'redirecting…' : 'continue with GitHub'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin');
+                setConfirmationSent(false);
+                setError(null);
+              }}
+              className="auth-switch"
+            >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={mode}

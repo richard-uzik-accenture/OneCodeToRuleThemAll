@@ -20,8 +20,7 @@ A personal task-triage app: Vite + React + TypeScript on the frontend, talking d
 2. Create a Supabase project at [supabase.com](https://supabase.com) (free tier). From **Project Settings → API**, note the **Project URL** and the **publishable key** (formerly called the "anon" key — Supabase renamed it, but it's still the public client-side key).
 
 3. In the Supabase dashboard:
-   - **Authentication → Providers**: confirm Email is enabled.
-   - **Authentication → Settings**: turn off "Confirm email" so sign-up works immediately without an email round-trip.
+   - **Authentication → Providers**: confirm Email is enabled, and leave "Confirm email" **on** — sign-up sends a confirmation link and won't return a session until it's clicked. (Google and GitHub sign-in are also available; enabling them needs OAuth apps registered with each provider — see `docs/plans/auth-oauth-and-email-confirm/archive/` for how this project's were set up.)
    - **SQL Editor**: run **every** file in [supabase/migrations/](supabase/migrations/) in filename order, starting with [0001_tasks.sql](supabase/migrations/0001_tasks.sql) (creates the `tasks` table with row-level security scoped to `auth.uid()`). Skipping a later migration leaves the database disagreeing with the app, which shows up as an opaque HTTP 400 on insert rather than a clear error.
 
    (The Supabase CLI isn't used for migrations here — this is a single-developer project, so the SQL files in the repo are just a readable record of the schema, applied by hand. If the app starts 400ing on writes, re-run the latest migration: they are written to be safe to apply more than once.)
