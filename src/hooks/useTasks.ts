@@ -113,26 +113,30 @@ export function useTasks() {
     }
   }
 
-  async function completeTask(id: string) {
+  async function completeTask(id: string): Promise<boolean> {
     const previous = tasks;
     setTasks((prev) => prev.filter((t) => t.id !== id));
     try {
       await (DEV_MODE ? mockTasksApi.updateStatus(id, 'done') : updateTaskStatus(id, 'done'));
       setCompletedToday(true);
+      return true;
     } catch (err) {
       setTasks(previous);
       setError(describeFailure("couldn't mark that settled", err));
+      return false;
     }
   }
 
-  async function editTask(id: string, patch: { title?: string; tags?: string[]; due_time?: string | null }) {
+  async function editTask(id: string, patch: { title?: string; tags?: string[]; due_time?: string | null }): Promise<boolean> {
     const previous = tasks;
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
     try {
       await (DEV_MODE ? mockTasksApi.update(id, patch) : updateTask(id, patch));
+      return true;
     } catch (err) {
       setTasks(previous);
       setError(describeFailure("couldn't save that edit", err));
+      return false;
     }
   }
 

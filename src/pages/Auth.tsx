@@ -11,7 +11,7 @@ interface AuthProps {
 }
 
 const KNOWN_ERRORS: Record<string, string> = {
-  'Invalid login credentials': "that password doesn't match",
+  'Invalid login credentials': "that email or password doesn't match",
   'User already registered': 'looks like you already have an account — try signing in',
   'Email not confirmed': 'that email still needs confirming — check your inbox',
   'Password should be at least 6 characters': 'needs to be at least 6 characters',

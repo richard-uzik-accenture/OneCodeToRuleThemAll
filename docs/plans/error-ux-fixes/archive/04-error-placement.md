@@ -5,9 +5,34 @@ shared page-top banner in `src/pages/Today.tsx` can't express which task or
 action failed, and the add/edit modal closes optimistically before a failure
 can be shown inside it.
 
+## Status: done (2026-08-19)
+
+Both tasks manually verified.
+
+**Scope note on task 1:** `TaskModal` in "add" mode (via `AddTaskFab`) doesn't
+call `addTask` directly — it goes through Compare/Duel (`useCompareInsertion`),
+which closes the modal immediately and only calls `insertTaskAtIndex`
+asynchronously after 1+ duel decisions, well after the modal is gone. An
+in-modal error isn't structurally possible there without redesigning the duel
+flow, so this fix is scoped to the **edit** path only (`Today.tsx`'s edit
+modal), matching the plan's own manual-test description. The add path's
+failure still only surfaces via the page-top banner, unchanged.
+
+`TaskModal.onSubmit` now accepts an optional `Promise<boolean>` return; on
+`false` the modal shows "couldn't save — try again" near the submit button
+and stays open. `editTask`/`completeTask` now return `Promise<boolean>`
+(matching the existing `dropTask`/`keepLeftover` pattern) so callers can
+branch on success without inspecting `error` state.
+
+Row failure indicator (task 2) is implemented as a ~2s background tint
+(`--haze`) plus a brief shake (skipped under reduced motion; the background
+tint still applies) via `TaskRow`'s existing framer-motion `animate` prop —
+no new CSS class needed, reuses the same mechanism already driving the
+long-press "charging" tint.
+
 ## Tasks
 
-- [ ] **1. Task-modal submissions show their own failure instead of closing blind**
+- [x] **1. Task-modal submissions show their own failure instead of closing blind**
       Files: `src/components/TaskModal.tsx`, `src/pages/Today.tsx` (wiring of
       `onSubmit` to `addTask`/`editTask`).
       Keep the modal open until the underlying `addTask`/`editTask` call
@@ -21,7 +46,7 @@ can be shown inside it.
       visible link back to what you were editing. Unblock the request and
       confirm a normal edit still closes the modal and saves.
 
-- [ ] **2. Row-scoped actions (complete/drop) show feedback near the row, not just the page-top banner**
+- [x] **2. Row-scoped actions (complete/drop) show feedback near the row, not just the page-top banner**
       File: `src/pages/Today.tsx` (wherever `completeTask`/`dropTask` are
       wired to row actions), possibly a small addition to the task-row
       component.

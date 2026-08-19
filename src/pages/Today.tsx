@@ -23,6 +23,23 @@ export function Today() {
     reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [failedRowId, setFailedRowId] = useState<string | null>(null);
+
+  async function handleComplete(id: string) {
+    const ok = await completeTask(id);
+    if (!ok) {
+      setFailedRowId(id);
+      window.setTimeout(() => setFailedRowId((current) => (current === id ? null : current)), 2000);
+    }
+  }
+
+  async function handleDrop(id: string) {
+    const ok = await dropTask(id);
+    if (!ok) {
+      setFailedRowId(id);
+      window.setTimeout(() => setFailedRowId((current) => (current === id ? null : current)), 2000);
+    }
+  }
   const { signOut, sessionError, dismissSessionError } = useAuth();
   const { pendingTitle, candidate, active, placedAt, progress, begin, decide } = useCompareInsertion({
     tasks,
@@ -151,12 +168,13 @@ export function Today() {
         ) : (
           <TaskList
             tasks={tasks}
-            onComplete={completeTask}
-            onDrop={dropTask}
+            onComplete={handleComplete}
+            onDrop={handleDrop}
             onReorder={reorderTasks}
             onReorderCommit={commitReorder}
             onEdit={setEditingTask}
             dimmed={active}
+            failedRowId={failedRowId}
           />
         )}
       </main>
@@ -169,9 +187,10 @@ export function Today() {
           mode="edit"
           initial={{ title: editingTask.title, tags: editingTask.tags, due_time: editingTask.due_time }}
           knownTags={knownTags}
-          onSubmit={(values) => {
-            editTask(editingTask.id, values);
-            setEditingTask(null);
+          onSubmit={async (values) => {
+            const ok = await editTask(editingTask.id, values);
+            if (ok) setEditingTask(null);
+            return ok;
           }}
           onClose={() => setEditingTask(null)}
         />

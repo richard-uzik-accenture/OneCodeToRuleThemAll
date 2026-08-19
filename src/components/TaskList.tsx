@@ -18,11 +18,12 @@ interface TaskListProps {
   onEdit?: (task: Task) => void;
   dimmed?: boolean;
   emptyState?: TaskListEmptyState;
+  failedRowId?: string | null;
 }
 
 const DEFAULT_EMPTY_STATE: TaskListEmptyState = { headline: 'nothing on the list yet — tap + to add your first task.' };
 
-export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit, onEdit, dimmed, emptyState }: TaskListProps) {
+export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit, onEdit, dimmed, emptyState, failedRowId }: TaskListProps) {
   if (tasks.length === 0) {
     const { headline, supportingText, action } = emptyState ?? DEFAULT_EMPTY_STATE;
     return <EmptyState headline={headline} supportingText={supportingText} action={action} />;
@@ -45,6 +46,7 @@ export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit
             onDrop={onDrop}
             onReorderCommit={onReorderCommit}
             onEdit={onEdit}
+            failed={task.id === failedRowId}
           />
         ))}
       </AnimatePresence>
