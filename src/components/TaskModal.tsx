@@ -8,7 +8,7 @@ interface TaskModalProps {
   mode: 'add' | 'edit';
   initial?: { title: string; tags?: string[]; due_time?: string | null };
   knownTags?: string[];
-  onSubmit: (values: { title: string; tags: string[]; due_time?: string | null }) => void;
+  onSubmit: (values: { title: string; tags: string[]; due_time?: string | null }) => void | Promise<boolean>;
   onClose: () => void;
 }
 
@@ -16,16 +16,26 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
   const [value, setValue] = useState(initial?.title ?? '');
   const [tags, setTags] = useState(initial?.tags ?? []);
   const [dueTime, setDueTime] = useState(initial?.due_time ?? '');
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const reducedMotion = useReducedMotion();
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const title = value.trim();
-    if (!title) return;
-    if (mode === 'edit') {
-      onSubmit({ title, tags, due_time: dueTime || null });
-    } else {
-      onSubmit({ title, tags });
+    if (!title) {
+      setTitleError('give this task a name');
+      return;
+    }
+    setSubmitError(null);
+    setSubmitting(true);
+    const result = mode === 'edit'
+      ? await onSubmit({ title, tags, due_time: dueTime || null })
+      : await onSubmit({ title, tags });
+    setSubmitting(false);
+    if (result === false) {
+      setSubmitError("couldn't save — try again");
     }
   }
 
@@ -51,13 +61,18 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
         </label>
         <input
           id="task-modal-input"
-          className="modal-input"
+          className={titleError ? 'modal-input modal-input-error' : 'modal-input'}
           type="text"
           autoFocus
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (titleError) setTitleError(null);
+          }}
           placeholder="e.g. call the plumber back"
+          aria-invalid={titleError ? true : undefined}
         />
+        {titleError && <p className="modal-field-error" role="alert">{titleError}</p>}
         <label className="modal-label" htmlFor="task-modal-tags">tags</label>
         <TagInput value={tags} known={knownTags} onChange={setTags} />
         {mode === 'edit' && (
@@ -68,9 +83,12 @@ export function TaskModal({ mode, initial, knownTags = [], onSubmit, onClose }: 
             </div>
           </>
         )}
+        {submitError && <p className="modal-field-error" role="alert">{submitError}</p>}
         <div className="modal-actions">
           <button type="button" className="modal-cancel" onClick={onClose}>cancel</button>
-          <button type="submit" className="modal-submit">{mode === 'add' ? 'add task' : 'save'}</button>
+          <button type="submit" className="modal-submit" disabled={submitting}>
+            {submitting ? 'saving…' : mode === 'add' ? 'add task' : 'save'}
+          </button>
         </div>
       </motion.form>
     </motion.div>

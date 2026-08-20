@@ -1,6 +1,13 @@
 import { AnimatePresence, Reorder } from 'framer-motion';
 import type { Task } from '../lib/tasks';
 import { TaskRow } from './TaskRow';
+import { EmptyState } from './EmptyState';
+
+interface TaskListEmptyState {
+  headline: string;
+  supportingText?: string;
+  action?: { label: string; onClick: () => void };
+}
 
 interface TaskListProps {
   tasks: Task[];
@@ -10,11 +17,16 @@ interface TaskListProps {
   onReorderCommit: () => void;
   onEdit?: (task: Task) => void;
   dimmed?: boolean;
+  emptyState?: TaskListEmptyState;
+  failedRowId?: string | null;
 }
 
-export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit, onEdit, dimmed }: TaskListProps) {
+const DEFAULT_EMPTY_STATE: TaskListEmptyState = { headline: 'nothing on the list yet — tap + to add your first task.' };
+
+export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit, onEdit, dimmed, emptyState, failedRowId }: TaskListProps) {
   if (tasks.length === 0) {
-    return <p className="empty-state">nothing on the list yet — tap + to add your first task.</p>;
+    const { headline, supportingText, action } = emptyState ?? DEFAULT_EMPTY_STATE;
+    return <EmptyState headline={headline} supportingText={supportingText} action={action} />;
   }
 
   return (
@@ -34,6 +46,7 @@ export function TaskList({ tasks, onComplete, onDrop, onReorder, onReorderCommit
             onDrop={onDrop}
             onReorderCommit={onReorderCommit}
             onEdit={onEdit}
+            failed={task.id === failedRowId}
           />
         ))}
       </AnimatePresence>

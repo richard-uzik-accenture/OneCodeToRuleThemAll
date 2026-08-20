@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Task } from '../lib/tasks';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -12,6 +13,7 @@ interface MorningFlowProps {
   remaining: number;
   tasks: Task[];
   keptCount: number;
+  leftoverError: string | null;
   onResolveLeftover: (keep: boolean) => void;
   onAddBrainDumpTask: (title: string) => void;
   onFinishBrainDump: () => void;
@@ -26,9 +28,17 @@ interface MorningFlowProps {
 const STEP_ORDER = ['leftover', 'braindump', 'merge'] as const;
 
 export function MorningFlow(props: MorningFlowProps) {
-  const { step } = props;
+  const { step, currentLeftover, onClose } = props;
   const stepIndex = STEP_ORDER.indexOf(step);
   const reducedMotion = useReducedMotion();
+
+  // Defensive: 'leftover' step should always have a currentLeftover
+  // (useMorningFlow only enters this step when the queue is non-empty). If
+  // that invariant is ever violated, close the flow rather than stranding
+  // the user on a blank step with no way forward.
+  useEffect(() => {
+    if (step === 'leftover' && !currentLeftover) onClose();
+  }, [step, currentLeftover, onClose]);
 
   return (
     <div className="flow-shell">
@@ -52,12 +62,15 @@ export function MorningFlow(props: MorningFlowProps) {
           exit="exit"
         >
           {step === 'leftover' && props.currentLeftover && (
-            <LeftoverCard
-              key={props.currentLeftover.id}
-              task={props.currentLeftover}
-              remaining={props.remaining}
-              onResolve={props.onResolveLeftover}
-            />
+            <div className="leftover-step">
+              {props.leftoverError && <p className="leftover-error" role="alert">{props.leftoverError}</p>}
+              <LeftoverCard
+                key={`${props.currentLeftover.id}-${props.leftoverError ?? 'ok'}`}
+                task={props.currentLeftover}
+                remaining={props.remaining}
+                onResolve={props.onResolveLeftover}
+              />
+            </div>
           )}
           {step === 'braindump' && <BrainDump onAdd={props.onAddBrainDumpTask} onDone={props.onFinishBrainDump} />}
           {step === 'merge' && (
@@ -71,6 +84,10 @@ export function MorningFlow(props: MorningFlowProps) {
                 onDrop={props.onDrop}
                 onReorder={props.onReorder}
                 onReorderCommit={props.onReorderCommit}
+                emptyState={{
+                  headline: 'nothing carried over, nothing new',
+                  supportingText: 'a clean slate — head into today empty-handed, or go back and add something.',
+                }}
               />
               <button className="merge-cta" onClick={props.onFinishMerge}>start the day</button>
             </div>

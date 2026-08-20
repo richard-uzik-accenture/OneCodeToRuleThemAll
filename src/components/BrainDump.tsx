@@ -32,9 +32,13 @@ export function BrainDump({ onAdd, onDone }: BrainDumpProps) {
         <button type="submit" className="braindump-add">add</button>
       </form>
       <ul className="braindump-list">
-        {entries.map((title, i) => (
-          <li key={i} className="braindump-entry">{title}</li>
-        ))}
+        {entries.length === 0 ? (
+          <li className="braindump-entry-placeholder">nothing added yet</li>
+        ) : (
+          entries.map((title, i) => (
+            <li key={i} className="braindump-entry">{title}</li>
+          ))
+        )}
       </ul>
       <button className="braindump-done" onClick={onDone}>done adding — sort the day</button>
     </div>

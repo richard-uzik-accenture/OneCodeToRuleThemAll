@@ -19,37 +19,23 @@ Every decision below traces back to this. When in doubt: *interruption is the as
 
 ## 1. Logo
 
-### Concept A — The comparator
+### The shift (canonical primary mark)
 
-Two chevrons (`>` and `<`) facing each other, with a thin coral sliver in the gap between them — the task that just landed in its slot.
+Three rounded horizontal bars — a ranked list. The middle bar breaks right into a chevron point, mid-reorder: the moment one item is actively moving past the others. Top and bottom bars stay full-width and still; only the active row shows motion.
 
-- **Strength:** most direct nod to the swipe-to-compare mechanic; best silhouette at 40px.
-- **Risk:** chevrons are common in tech logos. Make the gap wider than feels comfortable — that's what makes it read as *a space being made* rather than *fast-forward*.
+- **Strength:** reads as a list *in the act of reordering*, not a static stack — closer to the product's actual mechanic (an item shifting rank) than a symmetric/decorative arrangement. Distinct silhouette: two plain bars plus one bar-with-a-point, not a generic hamburger or chevron pairing.
+- **Risk:** the chevron notch needs its point (x=76 in the source geometry below) to stay proud of the bar body, or it collapses back into a plain rectangle at small sizes. Confirmed clean at 40px — see the SVG source.
+- Superseded concepts A ("the comparator": opposing chevrons around a coral sliver), B ("the reflow": bars shortening around a coral circle), C ("the confluence": merging curves), and D (chevron-leg monogram) were explored and rejected — kept here as history only, not as fallback options:
 
-### Concept B — The reflow (recommended)
+  <details>
+  <summary>Superseded concepts A–D</summary>
 
-A stack of rounded bars that shortens around a solid coral circle. Reads simultaneously as a ranked task list and as a paragraph wrapping around an object.
+  - **A — the comparator:** two chevrons (`>` `<`) facing each other with a coral sliver between them. Rejected: chevron-pair shape reads as generic "fast-forward" in the category.
+  - **B — the reflow:** a stack of bars shortening around a solid coral circle. Rejected: needed generous bar spacing to avoid reading as a hamburger menu at small sizes, and user testing (informal) found the metaphor didn't land without explanation.
+  - **C — the confluence:** two curves merging into one line. Rejected: loses definition below ~32px, better suited to a wordmark companion than a standalone app icon.
+  - **D — chevron-leg monogram:** a lowercase/capital `R` with a chevron for a leg. Rejected in favor of the shift's bar-based mark, which ties more directly to the ranked-list visual vocabulary used elsewhere in the icon system (§5).
 
-- **Strength:** the product thesis in one shape. The interruption isn't drawn as a problem — the lines simply accommodate it. Most ownable of the set; nothing in the category looks like this.
-- **Risk:** needs generous spacing between bars or it turns into a hamburger menu at small sizes.
-
-### Concept C — The confluence
-
-Two curves entering from the left — the plan (paper) and the unplanned thing (coral) — merging into a single ordered line exiting right.
-
-- **Strength:** warmest and most "personal tool" of the three.
-- **Risk:** the curves lose definition below ~32px. Better as a wordmark companion than a standalone app icon.
-
-### Concept D — The chevron-leg monogram (worth prototyping)
-
-A geometric lowercase or capital `R` whose leg is replaced by a chevron. The letterform stays calm and quiet; the one clever move hides in the descender.
-
-- Good for favicons, stamps, and anywhere the full mark is too much.
-- Rewards a second look without announcing itself.
-
-### Recommendation
-
-**Concept B as the primary mark**, with **D** as a secondary/favicon mark. B carries the meaning, D carries the personality.
+  </details>
 
 ### Lockup rules
 
@@ -58,56 +44,40 @@ A geometric lowercase or capital `R` whose leg is replaced by a chevron. The let
 - Gap between mark and wordmark = the width of the wordmark's `o`.
 - Minimum clear space on all sides = the height of the mark's smallest element.
 - Stacked (mark above wordmark) is permitted for square placements only. Never arch, rotate, or outline the mark.
+- Reference assets: `public/logo-lockup.svg` (ink-violet mark + wordmark, for light surfaces) and `public/logo-lockup-dark.svg` (paper mark + wordmark, for dark surfaces).
 
 ### App icon
 
 - Background: `ink violet #171335`, full-bleed, system corner radius.
-- Mark: `paper #FAF9FB`, with exactly one coral element.
+- Mark: `paper #FAF9FB`. Flat single color — no coral on the app icon itself; the coral-reserved-for-decisions rule (§2) stays scoped to in-app moments, not the icon.
 - No wordmark, no gradient, no shadow, no inner border.
-- Test at 40px before anything else. If the silhouette doesn't survive, the mark is wrong.
+- Test at 40px before anything else. If the silhouette doesn't survive, the mark is wrong. (Confirmed: at 40px all three bars and the chevron notch remain individually legible.)
+- Reference asset: `public/favicon.svg` — regenerate all raster sizes from this file via `node scripts/generate-favicons.mjs` if it changes.
+
+### Where the mark appears
+
+- **Today (authenticated home)** — mark + wordmark together, via the shared `.brand-lockup` class in `src/pages/Today.tsx`: the desktop rail (`.today-rail`, left sidebar) and the mobile header (`.today-header-mobile`) each show it at the top. Sized smaller than the reference lockup SVGs below (22px mark, matched to the in-app 20px wordmark) since this is a persistent header, not a hero moment.
+- **Landing (pre-login)** — mark + wordmark stacked, sized as a hero element (`Landing.tsx`, `.landing-mark`/`.landing-wordmark`) — this is the one place the lockup is meant to read as a badge rather than a companion.
+- **Auth (sign in/up)** — mark deliberately omitted. Decision (2026-08-19): the auth card keeps only the `reflow` text heading, no icon — the screen is a short, focused form, and the icon added height without adding information the user needed at that point. Don't re-add it without revisiting that reasoning.
+- **App loading (auth-check in flight)** — mark alone, no wordmark, in `AppLoading.tsx`. Shown while the app doesn't yet know whether to route to Today or Landing, so it must stay neutral rather than implying either outcome. See `App.tsx`'s `screen` state for the routing logic this depends on.
+- **PWA install prompt** (`InstallPrompt.tsx`) — mark alone, 32px, alongside install copy.
+- Reference lockup SVGs (`public/logo-lockup.svg`, `public/logo-lockup-dark.svg`) follow the x-height/gap rules above exactly and are meant for external use (README, social/OG images, app store listings) — the in-app placements above intentionally deviate in scale to fit their own UI, not the lockup rules verbatim.
 
 ### SVG source
 
-Each is a 118×118 app-icon tile. For a light-background version, delete the first `<rect>` and change `#FAF9FB` to `#171335`.
+118×118 app-icon tile. For a light-background version, delete the first `<rect>` and change `#FAF9FB` to `#171335`.
 
-**A — The comparator**
-
-```svg
-<svg viewBox="0 0 118 118" xmlns="http://www.w3.org/2000/svg">
-  <rect width="118" height="118" rx="26" fill="#171335"/>
-  <path d="M 30,38 L 52,59 L 30,80" fill="none" stroke="#FAF9FB" stroke-width="9"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M 88,38 L 66,59 L 88,80" fill="none" stroke="#FAF9FB" stroke-width="9"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="56" y="47" width="6" height="24" rx="3" fill="#FF6B4A"/>
-</svg>
-```
-
-**B — The reflow**
+**The shift**
 
 ```svg
 <svg viewBox="0 0 118 118" xmlns="http://www.w3.org/2000/svg">
   <rect width="118" height="118" rx="26" fill="#171335"/>
-  <circle cx="80" cy="61" r="14" fill="#FF6B4A"/>
-  <rect x="24" y="23" width="70" height="6" rx="3" fill="#FAF9FB"/>
-  <rect x="24" y="37" width="70" height="6" rx="3" fill="#FAF9FB"/>
-  <rect x="24" y="51" width="36" height="6" rx="3" fill="#FAF9FB"/>
-  <rect x="24" y="65" width="36" height="6" rx="3" fill="#FAF9FB"/>
-  <rect x="24" y="79" width="70" height="6" rx="3" fill="#FAF9FB"/>
-</svg>
-```
-
-**C — The confluence**
-
-```svg
-<svg viewBox="0 0 118 118" xmlns="http://www.w3.org/2000/svg">
-  <rect width="118" height="118" rx="26" fill="#171335"/>
-  <path d="M 28,40 C 48,40 50,59 68,59" fill="none" stroke="#FAF9FB"
-        stroke-width="9" stroke-linecap="round"/>
-  <path d="M 28,78 C 48,78 50,59 68,59" fill="none" stroke="#FF6B4A"
-        stroke-width="9" stroke-linecap="round"/>
-  <path d="M 64,59 L 92,59" fill="none" stroke="#FAF9FB"
-        stroke-width="9" stroke-linecap="round"/>
+  <g transform="translate(18.88, 20.48) scale(0.8024)" fill="#FAF9FB">
+    <rect x="16" y="10" width="64" height="20" rx="10"/>
+    <path d="M 16 38 H 66 L 76 48 L 66 58 H 16 A 10 10 0 0 1 16 38 Z"/>
+    <path d="M 72 38 H 84 L 94 48 L 84 58 H 72 L 82 48 Z"/>
+    <rect x="16" y="66" width="64" height="20" rx="10"/>
+  </g>
 </svg>
 ```
 

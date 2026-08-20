@@ -29,6 +29,8 @@ let mockTasks: Task[] = [
   { id: 'mock-8', user_id: DEV_USER_ID, title: 'still open: follow up with finance on budget', note: null, status: 'active', rank: 800, created_at: yesterday, completed_at: null, last_triaged_on: yesterday, tags: [], due_time: null },
 ];
 
+let mockCompletedToday = false;
+
 export const mockTasksApi = {
   list: async (): Promise<Task[]> => [...mockTasks].sort((a, b) => a.rank - b.rank),
   create: async (userId: string, title: string, rank: number, tags: string[] = []): Promise<Task> => {
@@ -45,6 +47,7 @@ export const mockTasksApi = {
   },
   updateStatus: async (taskId: string, status: Task['status']): Promise<void> => {
     mockTasks = mockTasks.map((t) => (t.id === taskId ? { ...t, status, completed_at: status === 'done' ? new Date().toISOString() : t.completed_at } : t));
+    if (status === 'done') mockCompletedToday = true;
   },
   updateRanks: async (updates: { id: string; rank: number }[]): Promise<void> => {
     const byId = new Map(updates.map((u) => [u.id, u.rank]));
@@ -53,4 +56,5 @@ export const mockTasksApi = {
   markTriaged: async (taskId: string): Promise<void> => {
     mockTasks = mockTasks.map((t) => (t.id === taskId ? { ...t, last_triaged_on: today } : t));
   },
+  hasCompletedToday: async (): Promise<boolean> => mockCompletedToday,
 };

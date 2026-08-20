@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from 'react';
-import { addTag, removeTag, suggestTags } from '../lib/tags';
+import { addTag, normalizeTag, removeTag, suggestTags } from '../lib/tags';
 import { Close } from './icons/Close';
 
 interface TagInputProps {
@@ -14,6 +14,12 @@ export function TagInput({ value, known, onChange }: TagInputProps) {
 
   const suggestions = suggestTags(known, query, value);
   const showSuggestions = query.length > 0 && suggestions.length > 0;
+  const showNoMatch = query.length > 0 && suggestions.length === 0;
+  const showDropdown = showSuggestions || showNoMatch;
+
+  const normalizedQuery = normalizeTag(query);
+  const isExactExistingTag = normalizedQuery.length > 0 && known.some((t) => t.toLowerCase() === normalizedQuery);
+  const isAlreadyAdded = normalizedQuery.length > 0 && value.some((t) => t.toLowerCase() === normalizedQuery);
 
   function commit(raw: string) {
     const next = addTag(value, raw);
@@ -78,28 +84,38 @@ export function TagInput({ value, known, onChange }: TagInputProps) {
           }}
           onKeyDown={handleKeyDown}
           placeholder={value.length === 0 ? 'add a tag' : ''}
-          aria-expanded={showSuggestions}
+          aria-expanded={showDropdown}
           role="combobox"
           aria-controls="tag-suggest-listbox"
           aria-autocomplete="list"
         />
       </div>
-      {showSuggestions && (
+      {showDropdown && (
         <ul className="tag-suggest" id="tag-suggest-listbox" role="listbox" aria-live="polite">
-          {suggestions.map((tag, i) => (
-            <li
-              key={tag}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={i === activeIndex ? 'tag-suggest-active' : undefined}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                commit(tag);
-              }}
-            >
-              {tag}
+          {showSuggestions ? (
+            suggestions.map((tag, i) => (
+              <li
+                key={tag}
+                role="option"
+                aria-selected={i === activeIndex}
+                className={i === activeIndex ? 'tag-suggest-active' : undefined}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  commit(tag);
+                }}
+              >
+                {tag}
+              </li>
+            ))
+          ) : (
+            <li className="tag-suggest-empty">
+              {isAlreadyAdded
+                ? 'already added'
+                : isExactExistingTag
+                  ? 'press enter to add this tag'
+                  : 'no matching tags — press enter to add as new'}
             </li>
-          ))}
+          )}
         </ul>
       )}
     </div>

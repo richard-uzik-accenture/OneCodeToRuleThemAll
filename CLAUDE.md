@@ -85,12 +85,95 @@ A phase is done when **every checkbox in the file is checked** (`- [x]`). At tha
 docs/plans/<plan-name>/<phase-file>.md  →  docs/plans/<plan-name>/archive/<phase-file>.md
 ```
 
-### Current plans
+Active phases (not yet archived) are whatever files remain directly in the plan folder. To know which phase you're on, list that folder — the lowest-numbered file is the current phase. Active plans currently live under `docs/plans/` (e.g. `reflow-v1`, `reflow-v2`, `reflow-v3`, `devops-setup`); list that directory for the current set rather than relying on a static list here.
 
-| Plan | Active folder | Notes |
-|---|---|---|
-| `reflow` | `docs/plans/reflow/` | v1 app — phases 09 and 10 remain |
-| `reflow-v2` | `docs/plans/reflow-v2/` | v2 features — B through F remain |
-| `devops-setup` | `docs/plans/devops-setup/` | DEV/QUALITY/PROD via Octopus Deploy — see `devops-workflow` skill |
+---
 
-Active phases (not yet archived) are whatever files remain directly in the plan folder. To know which phase you're on, list that folder — the lowest-numbered file is the current phase.
+# Project: reflow
+
+An interrupt-resilient personal day-planner. One ranked task list per day that
+survives being interrupted by unplanned work — see `PRODUCT.md` for full product
+purpose, users, and the binding brand system (colors, type, tone, motion — do not
+re-derive or override, treat it as decided).
+
+## Stack
+
+Vite + React 19 + TypeScript SPA, talking directly to a hosted Supabase project
+(Postgres + Auth + Realtime) — no custom backend server. Styling is plain CSS
+(`src/styles/`), animation is `framer-motion`. No Docker, no local database.
+
+## Project structure
+
+```
+src/
+  App.tsx            top-level routing/auth gate
+  main.tsx           entry point
+  pages/             Landing, Auth, Today — route-level screens
+  components/        UI pieces (TaskList, TaskRow, MorningFlow, CompareDuel,
+                      BrainDump, LeftoverCard, TagInput, TimePicker, AddTaskFab,
+                      TaskModal, InstallPrompt, VersionBadge, BorderGlow)
+  components/icons/  hand-written stroke icons (24px grid, 1.75px stroke — see
+                      branding.md for the icon system, don't pull in an icon lib)
+  hooks/             useAuth, useTasks, useMorningFlow, useCompareInsertion,
+                      useLongPressDrag, useInstallPrompt, useRolloverPrompt,
+                      useReducedMotion
+  lib/               framework-free logic + its co-located *.test.ts:
+                      tasks.ts (Supabase CRUD), ranking.ts (rank-gap math),
+                      compare.ts (binary-search comparator), triage.ts
+                      (leftover keep/drop), tags.ts, dueTime.ts, swipe.ts,
+                      realtimeMerge.ts, transitions.ts, pwa.ts, supabase.ts
+                      (client init), devMock.ts (VITE_DEV_MODE bypass)
+supabase/migrations/  hand-applied SQL, run in filename order via the Supabase
+                      SQL Editor — there is no migration runner/CLI wired up
+```
+
+Business logic lives in `src/lib/*.ts` as plain functions, independent of React —
+that's what the `*.test.ts` files next to them exercise directly. Anything that
+needs a Supabase call or React state lives in `src/hooks/*.ts` instead.
+
+## Local setup (from zero)
+
+1. `npm install`
+2. Create a Supabase project (free tier) at supabase.com. From **Project Settings → API**, note the **Project URL** and the **publishable ("anon") key**.
+3. In the Supabase dashboard: **Authentication → Providers** — confirm Email is enabled. **Authentication → Settings** — turn off "Confirm email" so sign-up works without an email round-trip.
+4. **SQL Editor** — run every file in `supabase/migrations/` in filename order, starting with `0001_tasks.sql`. Skipping a later migration leaves the DB disagreeing with the app (shows up as an opaque HTTP 400 on insert). Files are written to be safe to re-run. There is no migration CLI/runner — this is hand-applied SQL, run manually each time the schema changes.
+5. Copy `.env.example` → `.env.local` and fill in `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (see table below). `.env.local` is gitignored — never commit real credentials.
+6. `npm run dev` — opens at `http://localhost:5173`.
+
+To test on a second device (e.g. a phone) on the same network: `npm run dev -- --host`, then open the printed "Network" URL there, signed into the same account.
+
+## Commands
+
+```bash
+npm run dev       # vite dev server, http://localhost:5173
+npm run dev -- --host   # expose on LAN for testing on a phone
+npm run build     # tsc -b && vite build
+npm run preview   # preview the production build
+npm run test      # vitest run
+npm run lint      # oxlint
+```
+
+## Environment variables (`.env.local`, gitignored)
+
+| Var | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | required; from Supabase Project Settings → API |
+| `VITE_SUPABASE_SCHEMA` | optional, default `public`; DEV/QUALITY share one Supabase project split by Postgres schema (`dev`/`preprod`) — see `devops-workflow` skill |
+| `VITE_DEV_MODE=true` | optional; bypasses real Supabase auth with a mock session + seeded tasks (`src/lib/devMock.ts`) — no Supabase project needed at all, useful for UI checks/browser automation |
+
+## Environments & deployment
+
+Three environments (DEV/QUALITY/PROD), each its own Vercel project, promoted by
+**Octopus Deploy** from one build produced on `main`. Full branching model,
+who-can-merge-what rules, and CI/CD pipeline design live in the **`devops-workflow`
+skill** (`.claude/skills/devops-workflow/SKILL.md`) — invoke it rather than
+re-deriving this from scratch when merging, deploying, or touching
+`.github/workflows/*`. Current rollout state/open issues are tracked in
+`docs/plans/devops-setup/00-overview.md`.
+
+## Other docs in this repo
+
+- `README.md` — human setup instructions (Supabase project creation, migrations, env vars). Read this, not CLAUDE.md, for "how do I get this running from zero."
+- `PRODUCT.md` — product purpose, target user, positioning, and the **binding** brand system reference (colors/type/tone/motion decided elsewhere in `branding.md`). Schema-managed by the `impeccable` skill — don't hand-edit its structure.
+- `branding.md` — full pinned visual identity system (logo, palette, type, iconography, motion timing). Binding, not inspiration.
+- `idea.md` — original problem-framing draft PRODUCT.md was built from; historical record.

@@ -17,7 +17,7 @@ export function Landing({ onGetStarted }: LandingProps) {
             one ranked list for today. new things land where they belong, not at the bottom.
           </p>
           <button className="landing-cta" onClick={onGetStarted}>
-            sign in
+            get started
           </button>
         </div>
       </BorderGlow>

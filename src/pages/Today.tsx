@@ -11,18 +11,37 @@ import { AddTaskFab } from '../components/AddTaskFab';
 import { CompareDuel } from '../components/CompareDuel';
 import { MorningFlow } from '../components/MorningFlow';
 import { TaskModal } from '../components/TaskModal';
+import { TaskListSkeleton } from '../components/TaskListSkeleton';
 import { InstallPrompt } from '../components/InstallPrompt';
+import { Mark } from '../components/icons/Mark';
 import { SignOut } from '../components/icons/SignOut';
 import type { Task } from '../lib/tasks';
 import { allKnownTags } from '../lib/tags';
 
 export function Today() {
   const {
-    tasks, loading, error, dismissError, addTask, completeTask, editTask, dropTask,
+    tasks, loading, error, dismissError, completedToday, realtimeStale, addTask, completeTask, editTask, dropTask,
     reorderTasks, commitReorder, insertTaskAtIndex, keepLeftover,
   } = useTasks();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const { signOut } = useAuth();
+  const [failedRowId, setFailedRowId] = useState<string | null>(null);
+
+  async function handleComplete(id: string) {
+    const ok = await completeTask(id);
+    if (!ok) {
+      setFailedRowId(id);
+      window.setTimeout(() => setFailedRowId((current) => (current === id ? null : current)), 2000);
+    }
+  }
+
+  async function handleDrop(id: string) {
+    const ok = await dropTask(id);
+    if (!ok) {
+      setFailedRowId(id);
+      window.setTimeout(() => setFailedRowId((current) => (current === id ? null : current)), 2000);
+    }
+  }
+  const { signOut, signingOut, sessionError, dismissSessionError } = useAuth();
   const { pendingTitle, candidate, active, placedAt, progress, begin, decide } = useCompareInsertion({
     tasks,
     onInsert: insertTaskAtIndex,
@@ -32,10 +51,9 @@ export function Today() {
   const rollover = useRolloverPrompt(tasks);
   const knownTags = allKnownTags(tasks);
 
-  if (loading) return null;
-
   const keptCount = tasks.filter((t) => t.last_triaged_on === new Date().toISOString().slice(0, 10)).length;
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const allClear = tasks.length === 0 && completedToday;
 
   return (
     <>
@@ -54,6 +72,7 @@ export function Today() {
               remaining={morning.remaining}
               tasks={tasks}
               keptCount={keptCount}
+              leftoverError={morning.leftoverError}
               onResolveLeftover={morning.resolveLeftover}
               onAddBrainDumpTask={morning.addBrainDumpTask}
               onFinishBrainDump={morning.finishBrainDump}
@@ -72,34 +91,47 @@ export function Today() {
 
     <div className="today-shell">
       <aside className="today-rail">
-        <span className="wordmark">reflow</span>
+        <div className="brand-lockup">
+          <Mark className="brand-lockup-mark" aria-hidden="true" />
+          <span className="wordmark">reflow</span>
+        </div>
         <div className="day-meta">
           <span className="date">{today.toLowerCase()}</span>
-          <span className="count">{tasks.length} today</span>
+          {!loading && <span className="count">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
         </div>
-        {tasks.length > 0 && (
+        {!loading && (
           <div className="rail-glance">
             <span className="rail-glance-label">up next</span>
-            <span className="rail-glance-task">{tasks[0].title}</span>
+            <span className="rail-glance-task">{tasks.length > 0 ? tasks[0].title : 'nothing queued'}</span>
           </div>
         )}
         <div className="rail-spacer" />
         <button className="rail-action" onClick={morning.start}>start my day</button>
-        <button className="rail-signout" onClick={signOut}>sign out</button>
+        <button className="rail-signout" onClick={signOut} disabled={signingOut}>
+          {signingOut ? 'signing out…' : 'sign out'}
+        </button>
       </aside>
 
       <header className="today-header-mobile">
-        <span className="wordmark">reflow</span>
+        <div className="brand-lockup">
+          <Mark className="brand-lockup-mark" aria-hidden="true" />
+          <span className="wordmark">reflow</span>
+        </div>
         <div className="header-right">
-          <span className="count-chip">{tasks.length} today</span>
-          <button className="header-signout" aria-label="sign out" onClick={signOut}>
-            <SignOut width={20} height={20} />
+          {!loading && <span className="count-chip">{allClear ? 'all clear' : `${tasks.length} today`}</span>}
+          <button
+            className="header-signout"
+            aria-label={signingOut ? 'signing out' : 'sign out'}
+            onClick={signOut}
+            disabled={signingOut}
+          >
+            <SignOut width={20} height={20} className={signingOut ? 'spin' : undefined} />
           </button>
         </div>
       </header>
 
       <main className="today-main">
-        <div aria-live="polite" className="visually-hidden">{error}</div>
+        <div aria-live="polite" className="visually-hidden">{error || sessionError}</div>
         <AnimatePresence>
           {error && (
             <motion.div
@@ -113,7 +145,24 @@ export function Today() {
               <button className="error-dismiss" onClick={dismissError}>dismiss</button>
             </motion.div>
           )}
+          {sessionError && (
+            <motion.div
+              className="error-banner"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 18 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span>{sessionError}</span>
+              <button className="error-dismiss" onClick={dismissSessionError}>dismiss</button>
+            </motion.div>
+          )}
         </AnimatePresence>
+        {realtimeStale && (
+          <div className="realtime-stale-banner" role="status">
+            live updates paused — changes may not sync until you reload
+          </div>
+        )}
         {rollover.hasLeftovers && !rollover.dismissed && (
           <div className="rollover-banner">
             <button className="rollover-prompt" onClick={morning.start}>
@@ -123,16 +172,25 @@ export function Today() {
           </div>
         )}
         <h1 className="list-heading">today</h1>
-        <p className="list-sub">{tasks.length} thing{tasks.length === 1 ? '' : 's'}, in order.</p>
-        <TaskList
-          tasks={tasks}
-          onComplete={completeTask}
-          onDrop={dropTask}
-          onReorder={reorderTasks}
-          onReorderCommit={commitReorder}
-          onEdit={setEditingTask}
-          dimmed={active}
-        />
+        {!loading && (
+          <p className="list-sub">
+            {allClear ? "today's settled." : `${tasks.length} thing${tasks.length === 1 ? '' : 's'}, in order.`}
+          </p>
+        )}
+        {loading ? (
+          <TaskListSkeleton />
+        ) : (
+          <TaskList
+            tasks={tasks}
+            onComplete={handleComplete}
+            onDrop={handleDrop}
+            onReorder={reorderTasks}
+            onReorderCommit={commitReorder}
+            onEdit={setEditingTask}
+            dimmed={active}
+            failedRowId={failedRowId}
+          />
+        )}
       </main>
 
     </div>
@@ -143,9 +201,10 @@ export function Today() {
           mode="edit"
           initial={{ title: editingTask.title, tags: editingTask.tags, due_time: editingTask.due_time }}
           knownTags={knownTags}
-          onSubmit={(values) => {
-            editTask(editingTask.id, values);
-            setEditingTask(null);
+          onSubmit={async (values) => {
+            const ok = await editTask(editingTask.id, values);
+            if (ok) setEditingTask(null);
+            return ok;
           }}
           onClose={() => setEditingTask(null)}
         />

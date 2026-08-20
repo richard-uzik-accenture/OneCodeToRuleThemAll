@@ -1,0 +1,23 @@
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'General Sans';
+        src: url('/fonts/GeneralSans-Medium.woff2') format('woff2');
+        font-weight: 500;
+      }
+    </style>
+  </defs>
+
+  <!-- icon: approved "shift" mark, rendered at 76px tall, vertically centered on the wordmark's x-height band -->
+  <g transform="translate(0, 32) scale(1.0)" fill="#FAF9FB">
+    <rect x="16" y="10" width="64" height="20" rx="10"/>
+    <path d="M 16 38 H 66 L 76 48 L 66 58 H 16 A 10 10 0 0 1 16 38 Z"/>
+    <path d="M 72 38 H 84 L 94 48 L 84 58 H 72 L 82 48 Z"/>
+    <rect x="16" y="66" width="64" height="20" rx="10"/>
+  </g>
+
+  <!-- wordmark: lowercase only, General Sans Medium, x-height matched to icon height -->
+  <text x="148" y="98" font-family="'General Sans', 'Switzer', 'General Sans Fallback', sans-serif"
+        font-weight="500" font-size="123" fill="#FAF9FB" letter-spacing="-1">reflow</text>
+</svg>
