@@ -176,6 +176,7 @@ button {
 .task-row {
   display: grid;
   grid-template-columns: 22px 1fr 22px 22px;
+  user-select: none;
   align-items: center;
   gap: 12px;
   padding: 14px 13px;

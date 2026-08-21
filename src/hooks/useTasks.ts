@@ -28,6 +28,7 @@ export function useTasks() {
   const [completedToday, setCompletedToday] = useState(false);
   const [realtimeStale, setRealtimeStale] = useState(false);
   const preReorderTasks = useRef<Task[] | null>(null);
+  const isDragging = useRef(false);
 
   const reload = useCallback(async () => {
     if (!userId) return;
@@ -62,6 +63,9 @@ export function useTasks() {
         { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${userId}` },
         (payload) => {
           if (payload.eventType === 'DELETE') return; // the app never deletes rows, only changes status
+          // Skip realtime updates during drag to prevent the server's stale ranks from
+          // fighting the in-progress visual reorder. commitReorder clears isDragging.
+          if (isDragging.current) return;
           setTasks((prev) => upsertActiveTask(prev, normalizeTask(payload.new as Task)));
         }
       )
@@ -153,14 +157,18 @@ export function useTasks() {
     }
   }
 
-  function reorderTasks(newOrder: Task[]) {
-    if (!preReorderTasks.current) preReorderTasks.current = tasks;
+  const reorderTasks = useCallback((newOrder: Task[]) => {
+    if (!preReorderTasks.current) {
+      preReorderTasks.current = tasks;
+      isDragging.current = true;
+    }
     setTasks(newOrder);
-  }
+  }, [tasks]);
 
-  async function commitReorder() {
+  const commitReorder = useCallback(async () => {
     const previous = preReorderTasks.current;
     preReorderTasks.current = null;
+    isDragging.current = false;
     const ranks = renumber(tasks.length);
     const updates = tasks.map((t, i) => ({ id: t.id, rank: ranks[i] }));
     try {
@@ -169,7 +177,7 @@ export function useTasks() {
       if (previous) setTasks(previous);
       setError(describeFailure("couldn't save the new order", err));
     }
-  }
+  }, [tasks]);
 
   async function keepLeftover(id: string): Promise<boolean> {
     const today = new Date().toISOString().slice(0, 10);
