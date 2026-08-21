@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { useDragControls } from 'framer-motion';
 
-const LONG_PRESS_MS = 350;
+export const LONG_PRESS_MS = 350;
 const MOVE_CANCEL_THRESHOLD_PX = 10;
 
 export function useLongPressDrag() {
   const dragControls = useDragControls();
   const [charging, setCharging] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const timerRef = useRef<number | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -17,19 +18,29 @@ export function useLongPressDrag() {
     }
     startPointRef.current = null;
     setCharging(false);
+    setDragging(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   }
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.pointerType === 'mouse') {
       dragControls.start(e);
+      setDragging(true);
       return;
     }
+    // Touch: prevent text selection and focus acquisition during long-press
+    e.preventDefault();
     startPointRef.current = { x: e.clientX, y: e.clientY };
     setCharging(true);
     timerRef.current = window.setTimeout(() => {
-      dragControls.start(e);
+      window.getSelection()?.removeAllRanges();
       timerRef.current = null;
+      startPointRef.current = null;
       setCharging(false);
+      setDragging(true);
+      dragControls.start(e);
     }, LONG_PRESS_MS);
   }
 
@@ -40,5 +51,5 @@ export function useLongPressDrag() {
     if (Math.hypot(dx, dy) > MOVE_CANCEL_THRESHOLD_PX) cancel();
   }
 
-  return { dragControls, charging, onPointerDown, onPointerMove, onPointerUp: cancel, onPointerCancel: cancel };
+  return { dragControls, charging, dragging, onPointerDown, onPointerMove, onPointerUp: cancel, onPointerCancel: cancel };
 }
