@@ -1,6 +1,6 @@
 import { animate, motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
 import { useLayoutEffect, useRef, type RefObject } from 'react';
-import { decideSwipe } from '../lib/swipe';
+import { decideSwipeDirection, planDuelFling } from '../lib/swipe';
 import { reflowSpring } from '../lib/transitions';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { Task } from '../lib/tasks';
@@ -96,20 +96,16 @@ function DuelCard({ title, reducedMotion, commitRef, onResolved }: DuelCardProps
   function commit(direction: 1 | -1, velocityX = 0, velocityY = 0) {
     if (committed.current) return;
     committed.current = true;
-    navigator.vibrate?.(10); // branding.md §6: light haptic on commit
 
-    const distance = window.innerWidth + 240;
-    // Fling duration tracks how hard it was thrown, so a flick leaves fast and a
-    // slow push-past-threshold still reads as deliberate.
-    const speed = Math.abs(velocityX);
-    const duration = reducedMotion ? 0.1 : Math.min(0.3, Math.max(0.16, 0.32 - speed / 6000));
+    const plan = planDuelFling(direction, velocityX, window.innerWidth, reducedMotion);
+    if (plan.haptic) navigator.vibrate?.(10); // branding.md §6: light haptic on commit
+
     const ease: [number, number, number, number] = [0.32, 0.72, 0, 1];
-
-    animate(y, y.get() + velocityY * 0.1, { duration, ease });
-    animate(x, direction * distance, {
-      duration,
+    animate(y, y.get() + velocityY * 0.1, { duration: plan.duration, ease });
+    animate(x, plan.direction * plan.distance, {
+      duration: plan.duration,
       ease,
-      onComplete: () => onResolved(direction === 1),
+      onComplete: () => onResolved(plan.direction === 1),
     });
   }
 
@@ -118,9 +114,9 @@ function DuelCard({ title, reducedMotion, commitRef, onResolved }: DuelCardProps
   });
 
   function handleDragEnd(_event: unknown, info: PanInfo) {
-    const decision = decideSwipe(info.offset.x, info.velocity.x, SWIPE_THRESHOLD_PX);
-    if (decision !== null) {
-      commit(decision, info.velocity.x, info.velocity.y);
+    const direction = decideSwipeDirection(info.offset.x, info.velocity.x, SWIPE_THRESHOLD_PX);
+    if (direction !== null) {
+      commit(direction, info.velocity.x, info.velocity.y);
       return;
     }
     // Under threshold: hand the release velocity to the spring so the snap-back

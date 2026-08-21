@@ -20,7 +20,7 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit, failed }: TaskRowProps) {
-  const { dragControls, charging, dragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useLongPressDrag();
+  const { dragControls, charging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useLongPressDrag();
   const [now, setNow] = useState(() => new Date());
   const reducedMotion = useReducedMotion();
 
@@ -53,20 +53,22 @@ export function TaskRow({ task, onComplete, onDrop, onReorderCommit, onEdit, fai
         opacity: 1,
         height: 'auto',
         marginBottom: 8,
-        scale: dragging ? 1.02 : charging ? 0.98 : 1,
-        boxShadow: dragging ? '0 12px 24px -10px rgba(23, 19, 53, 0.35)' : '0px 0px 0px rgba(0,0,0,0)',
+        scale: charging ? 0.98 : 1,
         backgroundColor: charging || failed ? 'var(--haze)' : 'var(--mist)',
         x: failed && !reducedMotion ? [0, -6, 6, -4, 4, 0] : 0,
       }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      whileDrag={{ scale: 1.02 }}
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: '0 12px 24px -10px rgba(23, 19, 53, 0.35)',
+        transition: { boxShadow: { duration: 0.15 } },
+      }}
       transition={{
         layout: { type: 'spring', stiffness: 300, damping: 30, mass: 0.9 },
         opacity: { duration: 0.2 },
         height: { duration: 0.2 },
         marginBottom: { duration: 0.2 },
         scale: { duration: LONG_PRESS_MS / 1000 },
-        boxShadow: { duration: 0.15 },
         backgroundColor: { duration: LONG_PRESS_MS / 1000 },
         x: { duration: 0.4 },
       }}
